@@ -5,7 +5,7 @@ async function run() {
     orderBy: { createdAt: "asc" },
   });
   
-  const legacy = allReports.find(r => !(r.content as any).methodology);
+  const legacy = allReports.find((r: any) => !(r.content as any).methodology);
   if (legacy) {
     console.log("Legacy Report ID:", legacy.id);
   } else {

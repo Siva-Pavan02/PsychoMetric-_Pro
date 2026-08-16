@@ -40,7 +40,7 @@ export default async function AdminPage({
       db.assessment.count(),
     ]);
 
-  const totalRevenue = payments.reduce((s, p) => s + p.amount, 0) / 100;
+  const totalRevenue = payments.reduce((s: number, p: { amount: number }) => s + p.amount, 0) / 100;
   const completionRate = allAssessments > 0 ? Math.round((completedAssessments / allAssessments) * 100) : 0;
 
   return (
@@ -82,7 +82,7 @@ export default async function AdminPage({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {payments.map((p) => (
+                  {payments.map((p: { id: string, amount: number, participant: { name: string, email: string }, razorpayPaymentId: string | null, createdAt: Date }) => (
                     <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-3 font-medium text-slate-800">{p.participant.name}</td>
                       <td className="px-6 py-3 text-slate-500">{p.participant.email}</td>
