@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ReportData } from "@/types";
 
+import { renderToBuffer } from "@react-pdf/renderer";
+import { ReportDocument } from "@/lib/pdf/ReportDocument";
+import React from "react";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -22,14 +26,7 @@ export async function GET(
 
   const data = report.content as unknown as ReportData;
 
-  // Dynamic import keeps @react-pdf/renderer out of the edge bundle
-  const { renderToBuffer } = await import("@react-pdf/renderer");
-  const { ReportDocument } = await import("@/lib/pdf/ReportDocument");
-  const React = (await import("react")).default;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const element = React.createElement(ReportDocument as any, { data });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buffer: Buffer = await renderToBuffer(element as any);
   const bytes = new Uint8Array(buffer);
 
