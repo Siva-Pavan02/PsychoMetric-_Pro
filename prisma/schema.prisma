@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AssessmentStatus {
+  CREATED
+  PAYMENT_PENDING
+  PAYMENT_FAILED
+  QUESTIONS_UNLOCKED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Participant {
+  id          String       @id @default(cuid())
+  name        String
+  email       String
+  phone       String
+  createdAt   DateTime     @default(now())
+  assessments Assessment[]
+  payments    Payment[]
+
+  @@index([email])
+}
+
+model Assessment {
+  id            String           @id @default(uuid())
+  participantId String
+  participant   Participant      @relation(fields: [participantId], references: [id])
+  status        AssessmentStatus @default(CREATED)
+  startedAt     DateTime         @default(now())
+  completedAt   DateTime?
+  responses     Response[]
+  payment       Payment?
+  result        Result?
+  report        Report?
+
+  @@index([participantId])
+}
+
+model Response {
+  id           String     @id @default(cuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  questionId   String
+  answer       Int
+
+  @@unique([assessmentId, questionId])
+  @@index([assessmentId])
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  participantId     String
+  participant       Participant   @relation(fields: [participantId], references: [id])
+  assessmentId      String        @unique
+  assessment        Assessment    @relation(fields: [assessmentId], references: [id])
+  razorpayOrderId   String        @unique
+  razorpayPaymentId String?       @unique
+  amount            Int
+  currency          String        @default("INR")
+  status            PaymentStatus @default(CREATED)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([razorpayOrderId])
+}
+
+model Result {
+  id                String     @id @default(cuid())
+  assessmentId      String     @unique
+  assessment        Assessment @relation(fields: [assessmentId], references: [id])
+  openness          Float
+  conscientiousness Float
+  extraversion      Float
+  agreeableness     Float
+  neuroticism       Float
+  createdAt         DateTime   @default(now())
+}
+
+model Report {
+  id           String     @id @default(cuid())
+  assessmentId String     @unique
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  content      Json
+  createdAt    DateTime   @default(now())
+}
