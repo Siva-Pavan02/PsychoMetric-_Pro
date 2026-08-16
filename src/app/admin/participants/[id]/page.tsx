@@ -1,14 +1,16 @@
 import { db } from "@/lib/db";
+import { paiseToRupees } from "@/lib/admin/metrics";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ReportData } from "@/types";
 
 export const dynamic = "force-dynamic";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-      <h2 className="text-sm font-bold text-[#1e3a5f] mb-4 pb-2 border-b border-slate-100 uppercase tracking-widest">{title}</h2>
+      <h2 className="text-sm font-bold text-[#1e3a5f] mb-4 pb-2 border-b border-slate-100 uppercase tracking-widest">
+        {title}
+      </h2>
       {children}
     </div>
   );
@@ -39,11 +41,11 @@ export default async function ParticipantDetailPage({
           report: true,
         },
         orderBy: { startedAt: "desc" },
-        take: 1
+        take: 1,
       },
       payments: {
         orderBy: { createdAt: "desc" },
-        take: 1
+        take: 1,
       },
     },
   });
@@ -51,18 +53,30 @@ export default async function ParticipantDetailPage({
   if (!p) notFound();
 
   const formatDate = (date: Date | null | undefined) =>
-    date ? new Date(date).toLocaleString("en-IN", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
+    date
+      ? new Date(date).toLocaleString("en-IN", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "—";
 
   const assessment = p.assessments?.[0];
   const payment = p.payments?.[0];
   const result = assessment?.result;
   const report = assessment?.report;
 
-  const scores = result ? (result as unknown as any) : null;
   const isPaid = payment?.status === "SUCCESS";
   const isCompleted = assessment?.status === "COMPLETED";
 
-  // Timeline
+  // amount is in paise — convert to rupees at display boundary
+  const displayAmount = isPaid && payment?.amount != null
+    ? `₹${paiseToRupees(payment.amount).toFixed(0)}`
+    : "—";
+
+  // Timeline — only use timestamps that actually exist in the schema
   const timeline = [
     { label: "Assessment Started", date: assessment?.startedAt, done: !!assessment },
     { label: "Payment Successful", date: isPaid ? payment?.updatedAt : null, done: isPaid },
@@ -86,51 +100,91 @@ export default async function ParticipantDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Section title="Participant Details">
-            <DataRow label="ID" value={<span className="font-mono text-xs">{p.id}</span>} />
             <DataRow label="Name" value={p.name} />
             <DataRow label="Email" value={p.email} />
             <DataRow label="Phone" value={p.phone || "—"} />
-            <DataRow label="Created At" value={formatDate(p.createdAt)} />
+            <DataRow label="Registered At" value={formatDate(p.createdAt)} />
           </Section>
 
           <Section title="Payment Details">
-            <DataRow label="Status" value={
-              isPaid ? <span className="text-emerald-600 font-bold">SUCCESS</span> : <span className="text-amber-600 font-bold">{payment?.status || "PENDING"}</span>
-            } />
-            <DataRow label="Amount" value={isPaid ? `₹${payment?.amount}` : "—"} />
-            <DataRow label="Razorpay Order ID" value={<span className="font-mono text-xs">{payment?.razorpayOrderId || "—"}</span>} />
-            <DataRow label="Razorpay Payment ID" value={<span className="font-mono text-xs">{payment?.razorpayPaymentId || "—"}</span>} />
-            <DataRow label="Payment Date" value={formatDate(payment?.createdAt)} />
+            <DataRow
+              label="Status"
+              value={
+                isPaid ? (
+                  <span className="text-emerald-600 font-bold">SUCCESS</span>
+                ) : payment?.status === "FAILED" ? (
+                  <span className="text-red-600 font-bold">FAILED</span>
+                ) : (
+                  <span className="text-amber-600 font-bold">{payment?.status ?? "NONE"}</span>
+                )
+              }
+            />
+            <DataRow label="Amount" value={displayAmount} />
+            <DataRow label="Payment Gateway" value="Razorpay" />
+            <DataRow
+              label="Payment Method"
+              value={<span className="text-slate-400 italic text-xs">Not available</span>}
+            />
+            <DataRow
+              label="Razorpay Order ID"
+              value={<span className="font-mono text-xs">{payment?.razorpayOrderId || "—"}</span>}
+            />
+            <DataRow
+              label="Razorpay Payment ID"
+              value={<span className="font-mono text-xs">{payment?.razorpayPaymentId || "—"}</span>}
+            />
+            <DataRow label="Payment Created At" value={formatDate(payment?.createdAt)} />
           </Section>
 
           <Section title="Assessment Status">
-            <DataRow label="Assessment ID" value={<span className="font-mono text-xs">{assessment?.id || "—"}</span>} />
-            <DataRow label="Status" value={
-              isCompleted ? <span className="text-emerald-600 font-bold">COMPLETED</span> : <span className="text-amber-600 font-bold">{assessment?.status || "PENDING"}</span>
-            } />
-            <DataRow label="Questions Completed" value={isCompleted ? "50/50" : "—"} />
+            <DataRow
+              label="Status"
+              value={
+                isCompleted ? (
+                  <span className="text-emerald-600 font-bold">COMPLETED</span>
+                ) : (
+                  <span className="text-amber-600 font-bold">{assessment?.status ?? "NONE"}</span>
+                )
+              }
+            />
             <DataRow label="Started At" value={formatDate(assessment?.startedAt)} />
-            <DataRow label="Completed At" value={isCompleted ? formatDate(assessment?.completedAt) : "—"} />
+            <DataRow
+              label="Completed At"
+              value={isCompleted ? formatDate(assessment?.completedAt) : "—"}
+            />
           </Section>
-          
-          {scores && (
+
+          {result && (
             <Section title="Personality Result (OCEAN)">
-              <DataRow label="Openness" value={`${scores.openness}%`} />
-              <DataRow label="Conscientiousness" value={`${scores.conscientiousness}%`} />
-              <DataRow label="Extraversion" value={`${scores.extraversion}%`} />
-              <DataRow label="Agreeableness" value={`${scores.agreeableness}%`} />
-              <DataRow label="Neuroticism" value={`${scores.neuroticism}%`} />
+              <DataRow label="Openness" value={`${result.openness.toFixed(1)}%`} />
+              <DataRow label="Conscientiousness" value={`${result.conscientiousness.toFixed(1)}%`} />
+              <DataRow label="Extraversion" value={`${result.extraversion.toFixed(1)}%`} />
+              <DataRow label="Agreeableness" value={`${result.agreeableness.toFixed(1)}%`} />
+              <DataRow label="Neuroticism" value={`${result.neuroticism.toFixed(1)}%`} />
             </Section>
           )}
 
           {report && (
-            <Section title="Report Management">
-              <DataRow label="Report Generated" value={formatDate(report.createdAt)} />
+            <Section title="Report">
+              <DataRow label="Report Generated" value={<span className="text-emerald-600 font-bold">YES</span>} />
+              <DataRow label="PDF Available" value={<span className="text-emerald-600 font-bold">YES</span>} />
+              <DataRow
+                label="Email Sent"
+                value={<span className="text-slate-400 italic text-xs">Not tracked</span>}
+              />
+              <DataRow label="Generated At" value={formatDate(report.createdAt)} />
               <div className="flex gap-4 mt-6">
-                <Link href={`/report/${report.id}`} target="_blank" className="flex-1 bg-white border border-[#1e3a5f] text-[#1e3a5f] text-center font-bold py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <Link
+                  href={`/report/${report.id}`}
+                  target="_blank"
+                  className="flex-1 bg-white border border-[#1e3a5f] text-[#1e3a5f] text-center font-bold py-2.5 rounded-lg hover:bg-slate-50 transition-colors"
+                >
                   View Online Report
                 </Link>
-                <Link href={`/api/report/${report.id}/pdf`} className="flex-1 bg-[#1e3a5f] text-white text-center font-bold py-2.5 rounded-lg hover:bg-[#162c4a] transition-colors">
+                <Link
+                  href={`/api/report/${report.id}/pdf`}
+                  className="flex-1 bg-[#1e3a5f] text-white text-center font-bold py-2.5 rounded-lg hover:bg-[#162c4a] transition-colors"
+                >
                   Download PDF
                 </Link>
               </div>
@@ -145,14 +199,26 @@ export default async function ParticipantDetailPage({
               {timeline.map((item, i) => (
                 <div key={i} className="flex gap-4 relative">
                   {i !== timeline.length - 1 && (
-                    <div className={`absolute top-6 bottom-[-24px] left-[11px] w-0.5 ${item.done ? 'bg-emerald-200' : 'bg-slate-100'}`} />
+                    <div
+                      className={`absolute top-6 bottom-[-24px] left-[11px] w-0.5 ${
+                        item.done ? "bg-emerald-200" : "bg-slate-100"
+                      }`}
+                    />
                   )}
-                  <div className={`w-6 h-6 rounded-full flex shrink-0 items-center justify-center border-2 z-10 bg-white ${item.done ? 'border-emerald-500' : 'border-slate-200'}`}>
+                  <div
+                    className={`w-6 h-6 rounded-full flex shrink-0 items-center justify-center border-2 z-10 bg-white ${
+                      item.done ? "border-emerald-500" : "border-slate-200"
+                    }`}
+                  >
                     {item.done && <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />}
                   </div>
                   <div className="pb-2">
-                    <p className={`text-sm font-bold ${item.done ? 'text-slate-800' : 'text-slate-400'}`}>{item.label}</p>
-                    <p className="text-xs text-slate-500">{item.done && item.date ? formatDate(item.date) : "Pending"}</p>
+                    <p className={`text-sm font-bold ${item.done ? "text-slate-800" : "text-slate-400"}`}>
+                      {item.label}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {item.done && item.date ? formatDate(item.date) : "Pending"}
+                    </p>
                   </div>
                 </div>
               ))}

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { paiseToRupees } from "@/lib/admin/metrics";
 
 export const dynamic = "force-dynamic";
 
@@ -10,39 +11,59 @@ export async function GET() {
       assessments: {
         include: { report: true },
         orderBy: { startedAt: "desc" },
-        take: 1
+        take: 1,
       },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  let csvContent = "Participant ID,Name,Email,Created At,Payment Status,Payment Method,Amount,Assessment Status,Report ID\n";
+  // Header
+  const headers = [
+    "Participant ID",
+    "Name",
+    "Email",
+    "Created At",
+    "Payment Status",
+    "Payment Gateway",
+    "Payment Method",
+    "Amount (INR)",
+    "Razorpay Order ID",
+    "Razorpay Payment ID",
+    "Assessment Status",
+    "Report ID",
+  ];
+
+  const rows: string[] = [headers.join(",")];
 
   for (const p of participants) {
     const payment = p.payments?.[0];
     const assessment = p.assessments?.[0];
     const isPaid = payment?.status === "SUCCESS";
-    const amount = isPaid ? payment?.amount : 0;
-    const paymentMethod = "Razorpay";
-    const paymentStatus = payment?.status || "PENDING";
-    const assessmentStatus = assessment?.status || "PENDING";
-    const reportId = assessment?.report?.id || "";
+
+    // amount is stored in paise — convert to rupees at export boundary
+    const amountRupees = isPaid && payment?.amount != null
+      ? paiseToRupees(payment.amount).toFixed(0)
+      : "0";
 
     const row = [
       p.id,
       `"${p.name.replace(/"/g, '""')}"`,
       p.email,
       p.createdAt.toISOString(),
-      paymentStatus,
-      paymentMethod,
-      amount,
-      assessmentStatus,
-      reportId,
+      payment?.status ?? "NONE",
+      "Razorpay",
+      "Not available",
+      amountRupees,
+      payment?.razorpayOrderId ?? "",
+      payment?.razorpayPaymentId ?? "",
+      assessment?.status ?? "NONE",
+      assessment?.report?.id ?? "",
     ].join(",");
-    
-    csvContent += row + "\n";
+
+    rows.push(row);
   }
 
+  const csvContent = rows.join("\n");
   const encoder = new TextEncoder();
   const bytes = encoder.encode(csvContent);
 
