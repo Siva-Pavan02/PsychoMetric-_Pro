@@ -4,9 +4,11 @@ import { verifySession } from "./lib/auth";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Read session token once — reused in both guards below
+  const token = request.cookies.get("admin_session")?.value;
+
   // Protect /admin/* except /admin/login
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    const token = request.cookies.get("admin_session")?.value;
     if (!token || !(await verifySession(token))) {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
@@ -18,7 +20,6 @@ export async function proxy(request: NextRequest) {
     pathname !== "/api/admin/login" &&
     pathname !== "/api/admin/logout"
   ) {
-    const token = request.cookies.get("admin_session")?.value;
     if (!token || !(await verifySession(token))) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
@@ -26,3 +27,4 @@ export async function proxy(request: NextRequest) {
 
   return NextResponse.next();
 }
+

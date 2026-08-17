@@ -1,28 +1,39 @@
 import { cookies } from "next/headers";
+import crypto from "crypto";
 
 const SESSION_COOKIE = "admin_session";
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
 
-async function getSecretKey() {
-  const secret = process.env.ADMIN_PASSWORD_HASH || "fallback_secret_do_not_use_in_prod";
-  const encoder = new TextEncoder();
-  return crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign", "verify"]
-  );
+function getSecretKey(): string {
+  const secret = process.env.ADMIN_PASSWORD_HASH;
+  if (!secret) {
+    throw new Error("ADMIN_PASSWORD_HASH environment variable is required.");
+  }
+  return secret;
 }
 
-export async function createSession() {
-  const key = await getSecretKey();
-  const data = "admin";
-  const encoder = new TextEncoder();
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(data));
-  const signatureHex = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
-  
-  const token = `${data}.${signatureHex}`;
-  
+function signPayload(payload: string, secret: string): string {
+  return crypto
+    .createHmac("sha256", secret)
+    .update(payload)
+    .digest("hex");
+}
+
+function timingSafeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, "hex");
+  const bufB = Buffer.from(b, "hex");
+  // Lengths must match before timingSafeEqual (different lengths short-circuit the padding)
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+export async function createSession(): Promise<void> {
+  const secret = getSecretKey();
+  const issuedAt = Date.now();
+  const payload = `admin.${issuedAt}`;
+  const sig = signPayload(payload, secret);
+  const token = `${payload}.${sig}`;
+
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -35,22 +46,36 @@ export async function createSession() {
 
 export async function verifySession(token: string): Promise<boolean> {
   try {
-    const [data, signatureHex] = token.split(".");
-    if (data !== "admin" || !signatureHex) return false;
-    
-    const key = await getSecretKey();
-    const encoder = new TextEncoder();
-    
-    const expectedSignature = await crypto.subtle.sign("HMAC", key, encoder.encode(data));
-    const expectedHex = Array.from(new Uint8Array(expectedSignature)).map(b => b.toString(16).padStart(2, '0')).join('');
-    
-    return signatureHex === expectedHex;
+    const secret = getSecretKey();
+
+    // Token format: "admin.<issuedAt>.<signature>"
+    const lastDot = token.lastIndexOf(".");
+    if (lastDot === -1) return false;
+
+    const payload = token.slice(0, lastDot);
+    const sigHex = token.slice(lastDot + 1);
+
+    // Constant-time signature verification
+    const expectedSig = signPayload(payload, secret);
+    if (!timingSafeCompare(sigHex, expectedSig)) return false;
+
+    // Payload format: "admin.<issuedAt>"
+    const parts = payload.split(".");
+    if (parts.length !== 2 || parts[0] !== "admin") return false;
+
+    const issuedAt = parseInt(parts[1], 10);
+    if (isNaN(issuedAt)) return false;
+
+    // Server-side expiry check — bounds validity to SESSION_TTL_MS
+    if (Date.now() - issuedAt > SESSION_TTL_MS) return false;
+
+    return true;
   } catch {
     return false;
   }
 }
 
-export async function clearSession() {
+export async function clearSession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
 }

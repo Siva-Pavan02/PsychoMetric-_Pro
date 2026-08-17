@@ -1,4 +1,5 @@
-import { getAdminMetrics } from "@/lib/admin/metrics";
+import { getAdminMetrics, paiseToRupees } from "@/lib/admin/metrics";
+import { db } from "@/lib/db";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +27,6 @@ export default async function AdminDashboard() {
   });
 
   // Recent activity (5 most recent participants)
-  const { db } = await import("@/lib/db");
   const recentActivity = await db.participant.findMany({
     take: 5,
     orderBy: { createdAt: "desc" },
@@ -159,9 +159,9 @@ export default async function AdminDashboard() {
                 else if (isPaid) eventStr = "Payment Successful";
                 else if (assessment) eventStr = "Assessment Started";
 
-                // amount is in paise — convert for display
+                // amount is in paise — convert at display boundary
                 const displayAmount = isPaid && payment?.amount != null
-                  ? `₹${(payment.amount / 100).toFixed(0)}`
+                  ? `₹${paiseToRupees(payment.amount).toFixed(0)}`
                   : "—";
 
                 return (

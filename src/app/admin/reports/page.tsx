@@ -71,8 +71,8 @@ export default async function ReportsPage({
                     <td className="px-6 py-4">
                       <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-bold">Available</span>
                     </td>
-                    <td className="px-6 py-4 text-slate-500 italic">
-                      Pending/N/A
+                    <td className="px-6 py-4 text-slate-400 italic text-xs">
+                      Not tracked
                     </td>
                     <td className="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">{date}</td>
                     <td className="px-6 py-4 text-right space-x-3">
