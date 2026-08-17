@@ -52,6 +52,9 @@ const s = StyleSheet.create({
   actionText:  { fontSize: 10, fontWeight: 700, color: NAVY, marginBottom: 2 },
   
   methodologyLabel: { fontSize: 8, fontWeight: 700, color: SLATE, textTransform: "uppercase", marginBottom: 1 },
+  drivenBy: { fontSize: 8, color: SLATE, fontStyle: "italic", marginTop: 2 },
+  qualityBox: { backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1, padding: 8, borderRadius: 4, marginBottom: 16 },
+  qualityText: { fontSize: 9, color: "#b91c1c", fontWeight: 700 },
 });
 
 function normalizeReport(data: any): ReportData {
@@ -61,7 +64,8 @@ function normalizeReport(data: any): ReportData {
     participantName: leg.participantName,
     assessmentId: leg.assessmentId,
     assessmentDate: leg.assessmentDate,
-    methodology: { model: "Big Five / OCEAN", items: 50, itemsPerTrait: 10, scale: "1-5 Likert", type: "Self-report", scoring: "Deterministic" },
+    methodology: { model: "Big Five / OCEAN", items: 50, itemsPerTrait: 10, scale: "1-5 Likert", type: "Self-report", scoring: "Deterministic", limitations: [] },
+    responseQuality: { flags: [], valid: true },
     scores: leg.scores,
     profile: leg.profile,
     scoreLegend: { low: "0-39", moderate: "40-69", high: "70-100" },
@@ -82,11 +86,11 @@ function normalizeReport(data: any): ReportData {
       agreeableness: { score: leg.scores.agreeableness, level: leg.profile.agreeableness.level, meaning: leg.agreeablenessDescription || "", implication: "" },
       neuroticism: { score: leg.scores.neuroticism, level: leg.profile.neuroticism.level, meaning: leg.neuroticismDescription || "", implication: "" }
     },
-    strengths: (leg.majorStrengths || []).map(s => ({ strength: s, drivenBy: "" })),
-    leadership: { style: leg.leadershipPotential, strengths: "", teamContribution: "", development: "" },
-    communication: { preferredStyle: leg.communicationStyle, teamTendency: "", strength: "", blindSpot: "" },
-    decisionMaking: { structuredVsExploratory: leg.decisionMakingStyle, speedVsDeliberation: "", peopleConsiderations: "", underUncertainty: "" },
-    careerSuitability: { overview: (leg.careerSuitability || []).join(", "), whyFit: "", roles: leg.careerSuitability || [], caveat: "" },
+    strengths: (leg.majorStrengths || []).map(s => ({ strength: s, drivenBy: "", tradeOff: "" })),
+    leadership: { style: leg.leadershipPotential, strengths: "", teamContribution: "", development: "", drivenByScores: "" },
+    communication: { preferredStyle: leg.communicationStyle, teamTendency: "", strength: "", blindSpot: "", drivenByScores: "" },
+    decisionMaking: { structuredVsExploratory: leg.decisionMakingStyle, speedVsDeliberation: "", peopleConsiderations: "", underUncertainty: "", drivenByScores: "" },
+    careerSuitability: { overview: (leg.careerSuitability || []).join(", "), whyFit: "", roles: leg.careerSuitability || [], caveat: "", drivenByScores: "" },
     learningStyle: { preferredStructure: leg.learningStyle, pace: "", feedback: "", practicalVsExploratory: "", independentVsCollaborative: "" },
     stressCoping: { sensitivity: "", likelyChallenge: leg.stressAndCoping, helpfulStrategies: "" },
     motivationalDrivers: leg.motivationalDrivers || [],
@@ -109,9 +113,9 @@ function Trait({ label, score }: { label: string; score: number }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, wrap = false }: { title: string; children: React.ReactNode; wrap?: boolean }) {
   return (
-    <View style={s.section}>
+    <View style={s.section} wrap={wrap}>
       <Text style={s.sectionHead}>{title}</Text>
       {children}
     </View>
@@ -140,9 +144,8 @@ export function ReportDocument({ data: rawData }: { data: any }) {
 
   return (
     <Document title={`Personality Report — ${data.participantName}`} author="PsychoMetric Pro">
-      {/* PAGE 1 */}
-      <Page size="A4" style={s.page}>
-        <View style={s.header}>
+      <Page size="A4" style={s.page} wrap>
+        <View style={s.header} fixed>
           <Text style={s.headerTitle}>PsychoMetric Pro</Text>
           <Text style={s.headerSub}>OCEAN Personality Assessment Report</Text>
         </View>
@@ -152,10 +155,19 @@ export function ReportDocument({ data: rawData }: { data: any }) {
           <View style={s.metaItem}><Text style={s.metaLabel}>Date</Text><Text style={s.metaValue}>{date}</Text></View>
           <View style={s.metaItem}><Text style={s.metaLabel}>Assessment ID</Text><Text style={s.metaValue}>{data.assessmentId.slice(0, 8).toUpperCase()}</Text></View>
         </View>
+        
+        {data.responseQuality?.flags?.length > 0 && (
+          <View style={s.qualityBox} wrap={false}>
+            <Text style={s.qualityText}>Notice: Response Quality Flags Detected</Text>
+            {data.responseQuality.flags.map((f, i) => (
+              <Text key={i} style={{ fontSize: 8, color: "#b91c1c", marginTop: 2 }}>• {f}</Text>
+            ))}
+          </View>
+        )}
 
         <View style={s.gridRow}>
           <View style={s.gridCol}>
-            <Section title="Profile at a Glance">
+            <Section title="Profile at a Glance" wrap={false}>
               {data.profileAtGlance.primaryStrength && (
                 <View style={{ marginBottom: 6 }}>
                   <Text style={s.metaLabel}>Primary Strength</Text>
@@ -183,7 +195,7 @@ export function ReportDocument({ data: rawData }: { data: any }) {
             </Section>
           </View>
           <View style={s.gridCol}>
-             <Section title="Trait Ranking">
+             <Section title="Trait Ranking" wrap={false}>
               {data.traitRanking.map((t, i) => (
                 <View key={i} style={{ flexDirection: "row", marginBottom: 3 }}>
                   <Text style={{ width: 15, fontWeight: 700, color: SLATE }}>{i + 1}.</Text>
@@ -195,7 +207,7 @@ export function ReportDocument({ data: rawData }: { data: any }) {
           </View>
         </View>
 
-        <Section title="Personality Trait Scores">
+        <Section title="Personality Trait Scores" wrap={false}>
           <Trait label="Openness"          score={data.scores.openness}          />
           <Trait label="Conscientiousness"  score={data.scores.conscientiousness}  />
           <Trait label="Extraversion"       score={data.scores.extraversion}       />
@@ -209,22 +221,15 @@ export function ReportDocument({ data: rawData }: { data: any }) {
           </View>
         </Section>
 
-        <Section title="Personality Type Summary">
+        <Section title="Personality Type Summary" wrap={false}>
           <Text style={[s.body, { fontWeight: 700 }]}>{data.personalityTypeSummary}</Text>
         </Section>
 
-        <Section title="Overall Personality Profile">
+        <Section title="Overall Personality Profile" wrap={false}>
           <Text style={s.body}>{data.overallProfile}</Text>
         </Section>
-      </Page>
 
-      {/* PAGE 2 */}
-      <Page size="A4" style={s.page}>
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 11, fontWeight: 700, color: NAVY }}>{data.participantName} — Personality Report (Page 2)</Text>
-        </View>
-
-        <Section title="Assessment Methodology">
+        <Section title="Methodology & Limitations" wrap={false}>
           <View style={s.gridRow}>
             <View style={{ width: "30%", marginBottom: 6 }}><Text style={s.methodologyLabel}>Model</Text><Text style={s.body}>{data.methodology.model}</Text></View>
             <View style={{ width: "30%", marginBottom: 6 }}><Text style={s.methodologyLabel}>Total Items</Text><Text style={s.body}>{data.methodology.items}</Text></View>
@@ -233,9 +238,20 @@ export function ReportDocument({ data: rawData }: { data: any }) {
             <View style={{ width: "30%", marginBottom: 6 }}><Text style={s.methodologyLabel}>Type</Text><Text style={s.body}>{data.methodology.type}</Text></View>
             <View style={{ width: "30%", marginBottom: 6 }}><Text style={s.methodologyLabel}>Scoring</Text><Text style={s.body}>{data.methodology.scoring}</Text></View>
           </View>
+          {data.methodology.limitations && data.methodology.limitations.length > 0 && (
+             <View style={{ marginTop: 8 }}>
+                <Text style={s.methodologyLabel}>Limitations to Consider</Text>
+                {data.methodology.limitations.map((lim, i) => (
+                  <View key={i} style={s.bullet}>
+                    <Text style={s.bulletDot}>•  </Text>
+                    <Text style={s.bulletText}>{lim}</Text>
+                  </View>
+                ))}
+             </View>
+          )}
         </Section>
 
-        <Section title="Trait-Level Insights">
+        <Section title="Trait-Level Insights" wrap={false}>
           {[
             { t: "Openness", d: data.traitInsights.openness },
             { t: "Conscientiousness", d: data.traitInsights.conscientiousness },
@@ -243,7 +259,7 @@ export function ReportDocument({ data: rawData }: { data: any }) {
             { t: "Agreeableness", d: data.traitInsights.agreeableness },
             { t: "Neuroticism", d: data.traitInsights.neuroticism },
           ].map(({ t, d }) => (
-            <View key={t} style={s.insightBox}>
+            <View key={t} style={s.insightBox} wrap={false}>
               <Text style={s.insightHead}>{t} — {d.score}% ({d.level})</Text>
               <Text style={[s.body, { marginBottom: 4 }]}><Text style={s.boldLabel}>Meaning: </Text>{d.meaning}</Text>
               {d.implication && <Text style={s.body}><Text style={s.boldLabel}>Implication: </Text>{d.implication}</Text>}
@@ -251,47 +267,46 @@ export function ReportDocument({ data: rawData }: { data: any }) {
           ))}
         </Section>
 
-        <Section title="Major Strengths">
+        <Section title="Major Strengths & Trade-offs" wrap={false}>
           {data.strengths.map((st, i) => (
             <View key={i} style={s.bullet}>
               <Text style={s.bulletDot}>•  </Text>
-              <Text style={s.bulletText}>
-                <Text style={{ fontWeight: 700 }}>{st.strength}</Text>
-                {st.drivenBy ? ` (Driven by: ${st.drivenBy})` : ""}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={s.bulletText}>
+                  <Text style={{ fontWeight: 700 }}>{st.strength}</Text>
+                  {st.drivenBy ? ` (Driven by: ${st.drivenBy})` : ""}
+                </Text>
+                {st.tradeOff && <Text style={{ fontSize: 9, color: SLATE, marginTop: 2, fontStyle: "italic" }}>Trade-off: {st.tradeOff}</Text>}
+              </View>
             </View>
           ))}
         </Section>
 
-        <Section title="Leadership Potential">
+        <Section title="Leadership Potential" wrap={false}>
           <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Style: </Text>{data.leadership.style}</Text>
           {data.leadership.strengths && <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Strengths: </Text>{data.leadership.strengths}</Text>}
           {data.leadership.teamContribution && <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Team Contribution: </Text>{data.leadership.teamContribution}</Text>}
           {data.leadership.development && <Text style={s.body}><Text style={s.boldLabel}>Development: </Text>{data.leadership.development}</Text>}
+          {data.leadership.drivenByScores && <Text style={s.drivenBy}>Based on: {data.leadership.drivenByScores}</Text>}
         </Section>
-      </Page>
 
-      {/* PAGE 3 */}
-      <Page size="A4" style={s.page}>
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 11, fontWeight: 700, color: NAVY }}>{data.participantName} — Personality Report (Page 3)</Text>
-        </View>
-
-        <Section title="Communication Style">
+        <Section title="Communication Style" wrap={false}>
           <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Preferred Style: </Text>{data.communication.preferredStyle}</Text>
           {data.communication.teamTendency && <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Team Tendency: </Text>{data.communication.teamTendency}</Text>}
           {data.communication.strength && <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Strength: </Text>{data.communication.strength}</Text>}
           {data.communication.blindSpot && <Text style={s.body}><Text style={s.boldLabel}>Blind Spot: </Text>{data.communication.blindSpot}</Text>}
+          {data.communication.drivenByScores && <Text style={s.drivenBy}>Based on: {data.communication.drivenByScores}</Text>}
         </Section>
 
-        <Section title="Decision-Making Style">
+        <Section title="Decision-Making Style" wrap={false}>
           <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Approach: </Text>{data.decisionMaking.structuredVsExploratory}</Text>
           {data.decisionMaking.speedVsDeliberation && <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Pace: </Text>{data.decisionMaking.speedVsDeliberation}</Text>}
           {data.decisionMaking.peopleConsiderations && <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>People: </Text>{data.decisionMaking.peopleConsiderations}</Text>}
           {data.decisionMaking.underUncertainty && <Text style={s.body}><Text style={s.boldLabel}>Under Uncertainty: </Text>{data.decisionMaking.underUncertainty}</Text>}
+          {data.decisionMaking.drivenByScores && <Text style={s.drivenBy}>Based on: {data.decisionMaking.drivenByScores}</Text>}
         </Section>
 
-        <Section title="Career Suitability">
+        <Section title="Career Suitability" wrap={false}>
           <Text style={[s.body, { marginBottom: 4 }]}><Text style={s.boldLabel}>Environments: </Text>{data.careerSuitability.overview}</Text>
           {data.careerSuitability.whyFit && <Text style={[s.body, { marginBottom: 8 }]}><Text style={s.boldLabel}>Why It Fits: </Text>{data.careerSuitability.whyFit}</Text>}
           
@@ -304,35 +319,29 @@ export function ReportDocument({ data: rawData }: { data: any }) {
           {data.careerSuitability.caveat && (
              <Text style={{ fontSize: 8, color: SLATE, fontStyle: "italic", marginTop: 4 }}>{data.careerSuitability.caveat}</Text>
           )}
+          {data.careerSuitability.drivenByScores && <Text style={[s.drivenBy, { marginTop: 8 }]}>Based on: {data.careerSuitability.drivenByScores}</Text>}
         </Section>
 
-        <Section title="Learning Style">
+        <Section title="Learning Style" wrap={false}>
           <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Structure: </Text>{data.learningStyle.preferredStructure}</Text>
           {data.learningStyle.pace && <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Pace: </Text>{data.learningStyle.pace}</Text>}
           {data.learningStyle.feedback && <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Feedback: </Text>{data.learningStyle.feedback}</Text>}
           {data.learningStyle.independentVsCollaborative && <Text style={s.body}><Text style={s.boldLabel}>Format: </Text>{data.learningStyle.independentVsCollaborative}</Text>}
         </Section>
 
-        <Section title="Stress & Coping Tendencies">
+        <Section title="Stress & Coping Tendencies" wrap={false}>
           <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Sensitivity: </Text>{data.stressCoping.sensitivity || "Moderate"}</Text>
           {data.stressCoping.likelyChallenge && <Text style={[s.body, { marginBottom: 2 }]}><Text style={s.boldLabel}>Likely Challenge: </Text>{data.stressCoping.likelyChallenge}</Text>}
           {data.stressCoping.helpfulStrategies && <Text style={s.body}><Text style={s.boldLabel}>Helpful Strategies: </Text>{data.stressCoping.helpfulStrategies}</Text>}
         </Section>
 
-        <Section title="Motivational Drivers">
+        <Section title="Motivational Drivers" wrap={false}>
           <Bullets items={data.motivationalDrivers} />
         </Section>
-      </Page>
 
-      {/* PAGE 4 */}
-      <Page size="A4" style={s.page}>
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 11, fontWeight: 700, color: NAVY }}>{data.participantName} — Personality Report (Page 4)</Text>
-        </View>
-
-        <Section title="Development Areas">
+        <Section title="Development Areas" wrap={false}>
           {data.developmentAreas.map((dev, i) => (
-             <View key={i} style={{ marginBottom: 8 }}>
+             <View key={i} style={{ marginBottom: 8 }} wrap={false}>
                <Text style={[s.body, { fontWeight: 700, color: NAVY, marginBottom: 2 }]}>{dev.area}</Text>
                {dev.whyItMatters && <Text style={s.body}><Text style={s.boldLabel}>Why it matters: </Text>{dev.whyItMatters}</Text>}
                {dev.practicalGrowth && <Text style={s.body}><Text style={s.boldLabel}>Growth direction: </Text>{dev.practicalGrowth}</Text>}
@@ -340,9 +349,9 @@ export function ReportDocument({ data: rawData }: { data: any }) {
           ))}
         </Section>
 
-        <Section title="Personalised Action Plan">
+        <Section title="Personalised Action Plan" wrap={false}>
           {data.actionPlan.map((rec, i) => (
-            <View key={i} style={[s.bullet, { marginBottom: 8 }]}>
+            <View key={i} style={[s.bullet, { marginBottom: 8 }]} wrap={false}>
               <Text style={s.recNum}>{i + 1}.</Text>
               <View style={{ flex: 1 }}>
                 <Text style={s.actionText}>{rec.action}</Text>
@@ -352,11 +361,11 @@ export function ReportDocument({ data: rawData }: { data: any }) {
           ))}
         </Section>
 
-        <Section title="Summary">
+        <Section title="Summary" wrap={false}>
           <Text style={s.body}>{data.summary}</Text>
         </Section>
 
-        <Text style={s.disclaimer}>{data.disclaimer}</Text>
+        <Text style={s.disclaimer} wrap={false}>{data.disclaimer}</Text>
       </Page>
     </Document>
   );

@@ -29,7 +29,7 @@ function runTests() {
     console.log(`\n======================================================`);
     console.log(`Testing: ${t.name}`);
     console.log(`======================================================`);
-    const r = interpretScores(t.scores, "Test User", "test-123", new Date().toISOString());
+    const r = interpretScores(t.scores, [], "Test User", "test-123", new Date().toISOString());
     console.log(`Type: ${r.personalityTypeSummary}`);
     console.log(`Overall Profile:\n${r.overallProfile}`);
     console.log(`Top Strength: ${r.strengths[0].strength}`);

@@ -10,7 +10,7 @@
  * the trait level combinations that produce it.
  */
 
-import { TraitScores, ScoredProfile, TraitLevel, TraitProfile, ReportData } from "@/types";
+import { TraitScores, ScoredProfile, TraitLevel, TraitProfile, ReportData, RawResponse } from "@/types";
 
 const DISCLAIMER =
   "This assessment is intended for educational, self-development, and personality-awareness purposes only. " +
@@ -103,6 +103,28 @@ const TRAIT_INSIGHTS = {
   }
 };
 
+
+function deriveResponseQuality(responses: RawResponse[]) {
+  if (!responses || responses.length === 0) {
+    return { flags: [], valid: true };
+  }
+  
+  const answers = responses.map(r => r.answer);
+  const mean = answers.reduce((sum, a) => sum + a, 0) / answers.length;
+  const variance = answers.reduce((sum, a) => sum + Math.pow(a - mean, 2), 0) / answers.length;
+  const sd = Math.sqrt(variance);
+
+  const extremes = answers.filter(a => a === 1 || a === 5).length / answers.length;
+  const middles = answers.filter(a => a === 3).length / answers.length;
+
+  const flags: string[] = [];
+  if (sd < 0.5) flags.push("Low variance detected (potential straight-lining)");
+  if (extremes > 0.8) flags.push("Unusually high rate of extreme responses (1 or 5)");
+  if (middles > 0.8) flags.push("Unusually high rate of neutral responses (3)");
+
+  return { flags, valid: true };
+}
+
 // ─── Multi-trait derived sections ─────────────────────────────────────────
 
 function derivePersonalityTypeSummary(p: ScoredProfile): string {
@@ -148,11 +170,11 @@ function deriveOverallProfile(p: ScoredProfile): string {
 
 function deriveStrengths(p: ScoredProfile) {
   const strengths = [];
-  if (p.conscientiousness.level === "High") strengths.push({ strength: "Reliable Execution", drivenBy: "High Conscientiousness" });
-  if (p.agreeableness.level === "High") strengths.push({ strength: "Relationship Building", drivenBy: "High Agreeableness" });
-  if (p.extraversion.level === "High") strengths.push({ strength: "Persuasive Communication", drivenBy: "High Extraversion" });
-  if (p.openness.level === "High") strengths.push({ strength: "Creative Problem Solving", drivenBy: "High Openness" });
-  if (p.neuroticism.level === "Low") strengths.push({ strength: "Emotional Resilience", drivenBy: "Low Neuroticism" });
+  if (p.conscientiousness.level === "High") strengths.push({ strength: "Reliable Execution", drivenBy: "High Conscientiousness", tradeOff: "May over-index on process over speed" });
+  if (p.agreeableness.level === "High") strengths.push({ strength: "Relationship Building", drivenBy: "High Agreeableness", tradeOff: "May occasionally avoid necessary conflict" });
+  if (p.extraversion.level === "High") strengths.push({ strength: "Persuasive Communication", drivenBy: "High Extraversion", tradeOff: "May sometimes dominate conversations" });
+  if (p.openness.level === "High") strengths.push({ strength: "Creative Problem Solving", drivenBy: "High Openness", tradeOff: "May struggle with highly repetitive execution" });
+  if (p.neuroticism.level === "Low") strengths.push({ strength: "Emotional Resilience", drivenBy: "Low Neuroticism", tradeOff: "May underestimate the stress others are feeling" });
   
   if (strengths.length < 3) {
     strengths.push({ strength: "Adaptability", drivenBy: "Balanced Profile" });
@@ -170,7 +192,8 @@ function deriveLeadership(p: ScoredProfile) {
       style: "Driven & Outward-Facing",
       strengths: "You combine social confidence with disciplined follow-through.",
       teamContribution: "You naturally organise others and set a clear, energetic pace.",
-      development: "Ensure you leave room for quieter team members to voice their ideas."
+      development: "Ensure you leave room for quieter team members to voice their ideas.",
+      drivenByScores: "High Extraversion + High Conscientiousness"
     };
   }
   if (A.level === "High" && E.level !== "Low") {
@@ -178,7 +201,8 @@ function deriveLeadership(p: ScoredProfile) {
       style: "Collaborative & Supportive",
       strengths: "You inspire trust, build consensus, and bring teams together.",
       teamContribution: "You create high psychological safety where teams feel valued.",
-      development: "Practice delivering critical feedback directly, even if it feels uncomfortable."
+      development: "Practice delivering critical feedback directly, even if it feels uncomfortable.",
+      drivenByScores: "High Agreeableness + Moderate/High Extraversion"
     };
   }
   if (C.level === "High" && O.level === "High" && E.level !== "High") {
@@ -186,7 +210,8 @@ function deriveLeadership(p: ScoredProfile) {
       style: "Thoughtful & Strategic",
       strengths: "You lead through expertise, careful planning, and intellectual depth.",
       teamContribution: "You provide teams with clear, well-reasoned direction.",
-      development: "Work on communicating your vision more overtly to build early buy-in."
+      development: "Work on communicating your vision more overtly to build early buy-in.",
+      drivenByScores: "High Conscientiousness + High Openness"
     };
   }
   if (C.level === "High" && E.level !== "High") {
@@ -194,7 +219,8 @@ function deriveLeadership(p: ScoredProfile) {
       style: "Functional & Dependable",
       strengths: "You lead by example through reliability and consistent output.",
       teamContribution: "You ensure standards are met and processes run smoothly.",
-      development: "Practice delegating tasks rather than taking them on yourself."
+      development: "Practice delegating tasks rather than taking them on yourself.",
+      drivenByScores: "High Conscientiousness + Low/Moderate Extraversion"
     };
   }
   
@@ -202,7 +228,8 @@ function deriveLeadership(p: ScoredProfile) {
     style: "Adaptive & Contextual",
     strengths: "You adjust your leadership approach based on the specific situation.",
     teamContribution: "You can step up when needed or follow when appropriate.",
-    development: "Identify a consistent personal leadership philosophy to anchor your decisions."
+    development: "Identify a consistent personal leadership philosophy to anchor your decisions.",
+    drivenByScores: "Balanced / Mixed Trait Profile"
   };
 }
 
@@ -214,7 +241,8 @@ function deriveCommunication(p: ScoredProfile) {
       preferredStyle: "Expressive and warm",
       teamTendency: "You tend to build rapport easily and adapt your message to your audience.",
       strength: "You naturally navigate social nuances and build trust quickly.",
-      blindSpot: "You might sometimes avoid difficult conversations to maintain harmony."
+      blindSpot: "You might sometimes avoid difficult conversations to maintain harmony.",
+      drivenByScores: "High Extraversion + High Agreeableness"
     };
   }
   if (E.level === "High" && A.level !== "High") {
@@ -222,7 +250,8 @@ function deriveCommunication(p: ScoredProfile) {
       preferredStyle: "Direct and assertive",
       teamTendency: "You are comfortable voicing your views and prefer clear, efficient exchanges.",
       strength: "You bring clarity to ambiguous situations by speaking plainly.",
-      blindSpot: "Your directness might occasionally be perceived as bluntness."
+      blindSpot: "Your directness might occasionally be perceived as bluntness.",
+      drivenByScores: "High Extraversion + Low/Moderate Agreeableness"
     };
   }
   if (E.level === "Low" && A.level === "High") {
@@ -230,7 +259,8 @@ function deriveCommunication(p: ScoredProfile) {
       preferredStyle: "Thoughtful and attentive",
       teamTendency: "You listen with genuine care and prefer meaningful dialogue over small talk.",
       strength: "You make others feel truly heard and understood.",
-      blindSpot: "You may hesitate to interrupt, causing your own ideas to be overlooked."
+      blindSpot: "You may hesitate to interrupt, causing your own ideas to be overlooked.",
+      drivenByScores: "Low Extraversion + High Agreeableness"
     };
   }
   if (E.level === "Low" && O.level === "High") {
@@ -238,14 +268,16 @@ function deriveCommunication(p: ScoredProfile) {
       preferredStyle: "Analytical and idea-driven",
       teamTendency: "You communicate through precise, rich content rather than social chatter.",
       strength: "You articulate complex concepts very clearly.",
-      blindSpot: "You might over-explain the theory when practical instructions are needed."
+      blindSpot: "You might over-explain the theory when practical instructions are needed.",
+      drivenByScores: "Low Extraversion + High Openness"
     };
   }
   return {
     preferredStyle: "Flexible and situational",
     teamTendency: "You adapt your communication based on the needs of the group.",
     strength: "You can mediate between different communication styles effectively.",
-    blindSpot: "Your true opinions may sometimes be hard to read."
+    blindSpot: "Your true opinions may sometimes be hard to read.",
+    drivenByScores: "Balanced / Contextual Profile"
   };
 }
 
@@ -257,7 +289,8 @@ function deriveDecisionMaking(p: ScoredProfile) {
       structuredVsExploratory: "Highly structured and systematic.",
       speedVsDeliberation: "Deliberate; prefers gathering complete information before committing.",
       peopleConsiderations: "Focuses heavily on objective facts and process.",
-      underUncertainty: "May feel frustrated without clear precedents or data."
+      underUncertainty: "May feel frustrated without clear precedents or data.",
+      drivenByScores: "High Conscientiousness + Low Openness"
     };
   }
   if (O.level === "High" && C.level !== "High") {
@@ -265,7 +298,8 @@ function deriveDecisionMaking(p: ScoredProfile) {
       structuredVsExploratory: "Intuitive and exploratory.",
       speedVsDeliberation: "Can move quickly when an idea feels right.",
       peopleConsiderations: "Weighs novel possibilities over established rules.",
-      underUncertainty: "Comfortable trusting instincts when exploring novel options."
+      underUncertainty: "Comfortable trusting instincts when exploring novel options.",
+      drivenByScores: "High Openness + Low/Moderate Conscientiousness"
     };
   }
   if (C.level === "High" && O.level === "High") {
@@ -273,7 +307,8 @@ function deriveDecisionMaking(p: ScoredProfile) {
       structuredVsExploratory: "Balanced: analytical yet open to unconventional approaches.",
       speedVsDeliberation: "Takes time to rigorously evaluate creative options.",
       peopleConsiderations: "Seeks the optimal path that satisfies both logic and vision.",
-      underUncertainty: "Works systematically to reduce uncertainty through research."
+      underUncertainty: "Works systematically to reduce uncertainty through research.",
+      drivenByScores: "High Conscientiousness + High Openness"
     };
   }
   if (N.level === "High") {
@@ -281,14 +316,16 @@ function deriveDecisionMaking(p: ScoredProfile) {
       structuredVsExploratory: "Cautious and risk-aware.",
       speedVsDeliberation: "Often deliberates extensively to avoid mistakes.",
       peopleConsiderations: "May seek consensus to share the burden of the decision.",
-      underUncertainty: "High-stakes decisions can feel stressful without trusted sounding boards."
+      underUncertainty: "High-stakes decisions can feel stressful without trusted sounding boards.",
+      drivenByScores: "High Neuroticism"
     };
   }
   return {
     structuredVsExploratory: "Pragmatic and situational.",
     speedVsDeliberation: "Adapts speed to the context and time available.",
     peopleConsiderations: "Balances facts with stakeholder needs reasonably well.",
-    underUncertainty: "Tolerates ambiguity effectively when stakes are moderate."
+    underUncertainty: "Tolerates ambiguity effectively when stakes are moderate.",
+    drivenByScores: "Balanced / Mixed Trait Profile"
   };
 }
 
@@ -300,7 +337,8 @@ function deriveCareerSuitability(p: ScoredProfile) {
       overview: "Dynamic, fast-paced environments that reward innovation and social engagement.",
       whyFit: "Your profile suggests you draw energy from collaborating on new ideas and driving change.",
       roles: ["Innovation Leadership", "Marketing Strategy", "Entrepreneurship", "Creative Direction"],
-      caveat: "Personality tendencies alone should not determine career choice. Consider your actual skills and interests."
+      caveat: "Personality tendencies alone should not determine career choice. Consider your actual skills and interests.",
+      drivenByScores: "High Openness + High Extraversion"
     };
   }
   if (C.level === "High" && A.level === "High") {
@@ -308,7 +346,8 @@ function deriveCareerSuitability(p: ScoredProfile) {
       overview: "Structured, people-oriented environments that require reliability and empathy.",
       whyFit: "Your profile suggests you excel at executing processes that directly support or help others.",
       roles: ["Healthcare Administration", "Education", "Human Resources", "Social Work"],
-      caveat: "Personality tendencies alone should not determine career choice. Consider your actual skills and interests."
+      caveat: "Personality tendencies alone should not determine career choice. Consider your actual skills and interests.",
+      drivenByScores: "High Conscientiousness + High Agreeableness"
     };
   }
   if (C.level === "High" && O.level === "Low") {
@@ -316,7 +355,8 @@ function deriveCareerSuitability(p: ScoredProfile) {
       overview: "Stable, process-driven environments with clear metrics for success.",
       whyFit: "Your profile suggests you thrive on predictability, accuracy, and rigorous execution.",
       roles: ["Operations", "Finance & Accounting", "Quality Assurance", "Logistics"],
-      caveat: "Personality tendencies alone should not determine career choice. Consider your actual skills and interests."
+      caveat: "Personality tendencies alone should not determine career choice. Consider your actual skills and interests.",
+      drivenByScores: "High Conscientiousness + Low Openness"
     };
   }
   if (O.level === "High" && C.level === "High") {
@@ -324,14 +364,16 @@ function deriveCareerSuitability(p: ScoredProfile) {
       overview: "Complex, analytical environments requiring both deep thought and strict execution.",
       whyFit: "Your profile suggests you can design novel solutions and successfully see them through to completion.",
       roles: ["Engineering", "Research & Development", "Strategic Consulting", "Product Management"],
-      caveat: "Personality tendencies alone should not determine career choice. Consider your actual skills and interests."
+      caveat: "Personality tendencies alone should not determine career choice. Consider your actual skills and interests.",
+      drivenByScores: "High Openness + High Conscientiousness"
     };
   }
   return {
     overview: "Cross-functional environments that require versatility.",
     whyFit: "Your balanced profile suggests you can adapt to a variety of roles without feeling strictly confined to one mode of working.",
     roles: ["Project Management", "General Management", "Account Management", "Customer Success"],
-    caveat: "Personality tendencies alone should not determine career choice. Consider your actual skills and interests."
+    caveat: "Personality tendencies alone should not determine career choice. Consider your actual skills and interests.",
+    drivenByScores: "Balanced / Generalist Profile"
   };
 }
 
@@ -584,6 +626,7 @@ function deriveSummary(p: ScoredProfile, name: string): string {
 
 export function interpretScores(
   scores: TraitScores,
+  responses: RawResponse[],
   participantName: string,
   assessmentId: string,
   assessmentDate: string
@@ -624,7 +667,14 @@ export function interpretScores(
       scale: "1–5 Likert Scale",
       type: "Self-report",
       scoring: "Deterministic trait aggregation and normalization",
+      limitations: [
+        "Self-report tendencies without normative comparisons (not a clinical assessment)",
+        "State vs Trait variance (responses may reflect current mood)",
+        "Lack of behavioral verification (reflects self-perception, not peer-rated performance)"
+      ]
     },
+    
+    responseQuality: deriveResponseQuality(responses),
 
     scores,
     profile: p,

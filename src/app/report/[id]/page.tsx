@@ -73,8 +73,9 @@ function normalizeReport(data: any): ReportData {
     assessmentId: leg.assessmentId,
     assessmentDate: leg.assessmentDate,
     methodology: {
-      model: "Big Five / OCEAN", items: 50, itemsPerTrait: 10, scale: "1-5 Likert Scale", type: "Self-report", scoring: "Deterministic aggregation"
+      model: "Big Five / OCEAN", items: 50, itemsPerTrait: 10, scale: "1-5 Likert Scale", type: "Self-report", scoring: "Deterministic aggregation", limitations: []
     },
+    responseQuality: { flags: [], valid: true },
     scores: leg.scores,
     profile: leg.profile,
     scoreLegend: { low: "0-39", moderate: "40-69", high: "70-100" },
@@ -95,11 +96,11 @@ function normalizeReport(data: any): ReportData {
       agreeableness: { score: leg.scores.agreeableness, level: leg.profile.agreeableness.level, meaning: leg.agreeablenessDescription || "", implication: "" },
       neuroticism: { score: leg.scores.neuroticism, level: leg.profile.neuroticism.level, meaning: leg.neuroticismDescription || "", implication: "" }
     },
-    strengths: (leg.majorStrengths || []).map(s => ({ strength: s, drivenBy: "Profile" })),
-    leadership: { style: leg.leadershipPotential, strengths: "", teamContribution: "", development: "" },
-    communication: { preferredStyle: leg.communicationStyle, teamTendency: "", strength: "", blindSpot: "" },
-    decisionMaking: { structuredVsExploratory: leg.decisionMakingStyle, speedVsDeliberation: "", peopleConsiderations: "", underUncertainty: "" },
-    careerSuitability: { overview: (leg.careerSuitability || []).join(", "), whyFit: "", roles: leg.careerSuitability || [], caveat: "" },
+    strengths: (leg.majorStrengths || []).map(s => ({ strength: s, drivenBy: "Profile", tradeOff: "" })),
+    leadership: { style: leg.leadershipPotential, strengths: "", teamContribution: "", development: "", drivenByScores: "" },
+    communication: { preferredStyle: leg.communicationStyle, teamTendency: "", strength: "", blindSpot: "", drivenByScores: "" },
+    decisionMaking: { structuredVsExploratory: leg.decisionMakingStyle, speedVsDeliberation: "", peopleConsiderations: "", underUncertainty: "", drivenByScores: "" },
+    careerSuitability: { overview: (leg.careerSuitability || []).join(", "), whyFit: "", roles: leg.careerSuitability || [], caveat: "", drivenByScores: "" },
     learningStyle: { preferredStructure: leg.learningStyle, pace: "", feedback: "", practicalVsExploratory: "", independentVsCollaborative: "" },
     stressCoping: { sensitivity: "", likelyChallenge: leg.stressAndCoping, helpfulStrategies: "" },
     motivationalDrivers: leg.motivationalDrivers || [],

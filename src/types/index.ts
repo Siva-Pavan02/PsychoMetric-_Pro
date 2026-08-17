@@ -79,6 +79,11 @@ export interface ReportData {
     scale: string;
     type: string;
     scoring: string;
+    limitations: string[];
+  };
+  responseQuality: {
+    flags: string[];
+    valid: boolean;
   };
   scores: TraitScores;
   profile: ScoredProfile;
@@ -103,11 +108,11 @@ export interface ReportData {
     agreeableness: { score: number; level: TraitLevel; meaning: string; implication: string };
     neuroticism: { score: number; level: TraitLevel; meaning: string; implication: string };
   };
-  strengths: { strength: string; drivenBy: string }[];
-  leadership: { style: string; strengths: string; teamContribution: string; development: string };
-  communication: { preferredStyle: string; teamTendency: string; strength: string; blindSpot: string };
-  decisionMaking: { structuredVsExploratory: string; speedVsDeliberation: string; peopleConsiderations: string; underUncertainty: string };
-  careerSuitability: { overview: string; whyFit: string; roles: string[]; caveat: string };
+  strengths: { strength: string; drivenBy: string; tradeOff?: string }[];
+  leadership: { style: string; strengths: string; teamContribution: string; development: string; drivenByScores: string };
+  communication: { preferredStyle: string; teamTendency: string; strength: string; blindSpot: string; drivenByScores: string };
+  decisionMaking: { structuredVsExploratory: string; speedVsDeliberation: string; peopleConsiderations: string; underUncertainty: string; drivenByScores: string };
+  careerSuitability: { overview: string; whyFit: string; roles: string[]; caveat: string; drivenByScores: string };
   learningStyle: { preferredStructure: string; pace: string; feedback: string; practicalVsExploratory: string; independentVsCollaborative: string };
   stressCoping: { sensitivity: string; likelyChallenge: string; helpfulStrategies: string };
   motivationalDrivers: string[];

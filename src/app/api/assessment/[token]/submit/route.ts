@@ -62,7 +62,7 @@ export async function POST(
   // Deterministic scoring
   const scores   = scoreAssessment(parsed.data.responses);
   const date     = new Date().toISOString();
-  const report   = interpretScores(scores, assessment.participant.name, token, date);
+  const report   = interpretScores(scores, parsed.data.responses, assessment.participant.name, token, date);
 
   // Sequential writes — Prisma 7 adapter does not support interactive $transaction (P2028).
   // Duplicate submission is safe: @@unique([assessmentId, questionId]) on Response,
