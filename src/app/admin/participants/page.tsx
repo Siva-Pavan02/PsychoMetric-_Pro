@@ -35,10 +35,10 @@ export default async function ParticipantsPage({
         <p className="text-slate-500 text-sm">All registered participants.</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-neu-bg rounded-3xl shadow-neu-flat border-4 border-neu-bg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
+            <thead className="bg-neu-bg shadow-neu-pressed text-slate-500 text-xs uppercase font-black">
               <tr>
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Email</th>
@@ -49,7 +49,7 @@ export default async function ParticipantsPage({
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200/50">
               {participants.map((p) => {
                 const payment = p.payments?.[0];
                 const assessment = p.assessments?.[0];
@@ -66,7 +66,7 @@ export default async function ParticipantsPage({
                   : "—";
 
                 return (
-                  <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={p.id} className="hover:bg-neu-bg hover:shadow-neu-pressed transition-all">
                     <td className="px-6 py-4 font-semibold text-[#1e3a5f]">{p.name}</td>
                     <td className="px-6 py-4 text-slate-500">{p.email}</td>
                     <td className="px-6 py-4">

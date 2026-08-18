@@ -341,7 +341,7 @@ export function ReportDocument({ data: rawData }: { data: any }) {
 
         <Section title="Development Areas" wrap={false}>
           {data.developmentAreas.map((dev, i) => (
-             <View key={i} style={{ marginBottom: 8 }} wrap={false}>
+             <View key={i} style={{ marginBottom: 8 }}>
                <Text style={[s.body, { fontWeight: 700, color: NAVY, marginBottom: 2 }]}>{dev.area}</Text>
                {dev.whyItMatters && <Text style={s.body}><Text style={s.boldLabel}>Why it matters: </Text>{dev.whyItMatters}</Text>}
                {dev.practicalGrowth && <Text style={s.body}><Text style={s.boldLabel}>Growth direction: </Text>{dev.practicalGrowth}</Text>}
@@ -351,21 +351,21 @@ export function ReportDocument({ data: rawData }: { data: any }) {
 
         <Section title="Personalised Action Plan" wrap={false}>
           {data.actionPlan.map((rec, i) => (
-            <View key={i} style={[s.bullet, { marginBottom: 8 }]} wrap={false}>
+            <View key={i} style={{ flexDirection: "row", marginBottom: 12 }}>
               <Text style={s.recNum}>{i + 1}.</Text>
-              <View style={{ flex: 1 }}>
+              <View style={{ width: "92%" }}>
                 <Text style={s.actionText}>{rec.action}</Text>
-                {rec.why && <Text style={s.bulletText}>{rec.why}</Text>}
+                {rec.why && <Text style={{ lineHeight: 1.5, color: "#334155" }}>{rec.why}</Text>}
               </View>
             </View>
           ))}
         </Section>
 
-        <Section title="Summary" wrap={false}>
+        <Section title="Summary" wrap={true}>
           <Text style={s.body}>{data.summary}</Text>
         </Section>
 
-        <Text style={s.disclaimer} wrap={false}>{data.disclaimer}</Text>
+        <Text style={s.disclaimer} wrap={true}>{data.disclaimer}</Text>
       </Page>
     </Document>
   );

@@ -30,22 +30,24 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-neu-bg flex flex-col md:flex-row">
       {/* Sidebar Desktop / Top Nav Mobile */}
-      <aside className="w-full md:w-64 bg-[#1e3a5f] text-white flex-shrink-0 flex flex-col">
+      <aside className="w-full md:w-64 bg-neu-bg shadow-neu-flat border-r-4 border-neu-bg flex-shrink-0 flex flex-col z-10">
         <div className="p-6">
-          <p className="text-blue-300 text-xs font-bold uppercase tracking-widest mb-1">PsychoMetric Pro</p>
-          <h2 className="text-xl font-black text-white">Operations</h2>
+          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">PsychoMetric Pro</p>
+          <h2 className="text-xl font-black text-[#1e3a5f]">Operations</h2>
         </div>
-        <nav className="flex-1 px-4 pb-4 md:pb-0 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible">
+        <nav className="flex-1 px-4 pb-4 md:pb-0 flex flex-row md:flex-col gap-3 overflow-x-auto md:overflow-visible">
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors flex-shrink-0 md:flex-shrink-1 ${
-                  isActive ? "bg-white text-[#1e3a5f]" : "text-blue-100 hover:bg-[#162c4a]"
+                className={`px-4 py-3 rounded-xl text-sm font-bold transition-all flex-shrink-0 md:flex-shrink-1 ${
+                  isActive
+                    ? "bg-neu-bg shadow-neu-pressed text-[var(--color-accent)]"
+                    : "text-slate-500 hover:shadow-neu-flat hover:text-[#1e3a5f]"
                 }`}
               >
                 {item.name}
@@ -57,7 +59,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full text-left px-4 py-2.5 text-blue-200 hover:text-white text-sm font-semibold transition-colors"
+            className="w-full text-left px-4 py-3 text-slate-500 hover:text-red-500 hover:shadow-neu-flat rounded-xl text-sm font-bold transition-all"
           >
             {isLoggingOut ? "Signing out..." : "Logout"}
           </button>
@@ -69,7 +71,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="md:hidden flex justify-end mb-4">
           <button
             onClick={handleLogout}
-            className="text-xs font-bold text-slate-500 uppercase px-3 py-1.5 bg-white border border-slate-200 rounded-md shadow-sm"
+            className="text-xs font-bold text-slate-500 uppercase px-4 py-2 bg-neu-bg shadow-neu-flat rounded-xl transition-all active:shadow-neu-pressed"
           >
             Logout
           </button>

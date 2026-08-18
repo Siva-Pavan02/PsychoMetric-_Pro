@@ -28,6 +28,7 @@ export default function QuestionsPage({
   const [errorMsg, setErrorMsg]       = useState("");
   const [showReview, setShowReview]   = useState(false);
   const [pageError, setPageError]     = useState("");
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     params.then((p) => setToken(p.token));
@@ -51,15 +52,30 @@ export default function QuestionsPage({
   const currentQ = questions[current];
 
   function selectAnswer(qId: string, val: number) {
+    if (isTransitioning) return;
+    
     setAnswers((prev) => ({ ...prev, [qId]: val }));
+    setIsTransitioning(true);
+    
+    // Automatic question advancement
+    setTimeout(() => {
+      setIsTransitioning(false);
+      if (current < questions.length - 1) {
+         setCurrent((c) => c + 1);
+      } else {
+         setShowReview(true);
+      }
+    }, 400);
   }
 
   const goNext = useCallback(() => {
+    setIsTransitioning(false);
     if (current < questions.length - 1) setCurrent((c) => c + 1);
     else setShowReview(true);
   }, [current, questions.length]);
 
   const goPrev = useCallback(() => {
+    setIsTransitioning(false);
     if (showReview) setShowReview(false);
     else if (current > 0) setCurrent((c) => c - 1);
   }, [current, showReview]);
@@ -123,27 +139,27 @@ export default function QuestionsPage({
 
           <div className="space-y-2 mb-8 max-h-64 overflow-y-auto pr-1">
             {questions.map((q) => (
-              <div key={q.id} className="flex items-start gap-3 text-sm p-3 bg-white rounded-lg border border-slate-100">
-                <span className="text-slate-400 w-6 shrink-0">{q.order}.</span>
-                <span className="flex-1 text-slate-700">{q.text}</span>
-                <span className={`shrink-0 font-medium ${answers[q.id] ? "text-[#1e3a5f]" : "text-red-400"}`}>
-                  {answers[q.id] ? LABELS[answers[q.id] - 1] : "—"}
+              <div key={q.id} className="flex items-start gap-3 text-sm p-4 bg-neu-bg shadow-neu-pressed rounded-xl mb-3">
+                <span className="text-slate-400 w-6 shrink-0 font-bold">{q.order}.</span>
+                <span className="flex-1 text-slate-700 font-medium">{q.text}</span>
+                <span className={`shrink-0 font-bold ${answers[q.id] ? "text-[#1e3a5f]" : "text-red-500"}`}>
+                  {answers[q.id] ? LABELS[answers[q.id] - 1] : "Missed"}
                 </span>
               </div>
             ))}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-4 mt-6">
             <button
               onClick={goPrev}
-              className="flex-1 border border-slate-200 text-slate-700 font-semibold py-3 rounded-xl hover:bg-slate-50 transition-colors"
+              className="flex-1 bg-neu-bg shadow-neu-flat hover:shadow-neu-pressed text-slate-600 font-bold py-4 rounded-xl transition-all"
             >
               ← Back
             </button>
             <button
               onClick={handleSubmit}
               disabled={!allAnswered || submitting || submitted}
-              className="flex-1 bg-[#1e3a5f] text-white font-semibold py-3 rounded-xl hover:bg-[#16304f] transition-colors disabled:opacity-60"
+              className="flex-1 bg-neu-bg shadow-neu-flat hover:shadow-neu-pressed text-[#1e3a5f] font-bold py-4 rounded-xl transition-all disabled:opacity-60 disabled:shadow-neu-flat"
             >
               {submitting ? "Submitting…" : "Submit Assessment ✓"}
             </button>
@@ -163,20 +179,20 @@ export default function QuestionsPage({
         </div>
 
         {/* Progress bar */}
-        <div className="h-2 bg-slate-100 rounded-full mb-8 overflow-hidden">
+        <div className="h-2.5 bg-neu-bg shadow-neu-pressed rounded-full mb-10 overflow-hidden">
           <div
-            className="h-full bg-[#1e3a5f] rounded-full transition-all duration-300"
+            className="h-full bg-[#1e3a5f] shadow-neu-flat rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
 
         {/* Question */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm mb-6 min-h-[140px] flex items-center">
-          <p className="text-slate-800 text-lg leading-relaxed font-medium">{currentQ?.text}</p>
+        <div className="bg-neu-bg shadow-neu-flat rounded-3xl p-8 mb-8 min-h-[140px] flex items-center border-4 border-neu-bg">
+          <p className="text-[#1e3a5f] text-xl leading-relaxed font-semibold">{currentQ?.text}</p>
         </div>
 
         {/* Likert options */}
-        <div className="grid grid-cols-5 gap-2 mb-8">
+        <div className="grid grid-cols-5 gap-3 sm:gap-4 mb-10">
           {LABELS.map((label, i) => {
             const val = i + 1;
             const selected = answers[currentQ?.id] === val;
@@ -184,16 +200,26 @@ export default function QuestionsPage({
               <button
                 key={val}
                 onClick={() => { selectAnswer(currentQ.id, val); }}
+                disabled={isTransitioning && !selected}
                 aria-label={label}
                 aria-pressed={selected}
-                className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                className={`flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-2xl transition-all duration-200 relative overflow-hidden ${
                   selected
-                    ? "border-[#1e3a5f] bg-[#1e3a5f] text-white"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-[#1e3a5f]/50"
+                    ? "bg-neu-bg shadow-neu-pressed border-2 border-[var(--color-accent)] text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]/20 scale-[0.98]"
+                    : "bg-neu-bg shadow-neu-flat border-2 border-transparent text-slate-500 hover:shadow-neu-pressed focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
                 }`}
               >
-                <span className="text-xl font-bold">{val}</span>
-                <span className="text-[9px] text-center leading-tight hidden sm:block">{label}</span>
+                <span className="text-xl sm:text-2xl font-bold flex items-center gap-1">
+                  {selected ? (
+                    <span className="text-sm">●</span>
+                  ) : (
+                    <span className="text-sm opacity-50">○</span>
+                  )}
+                  {val}
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-center leading-tight hidden sm:block px-1">
+                  {label}
+                </span>
               </button>
             );
           })}
@@ -212,20 +238,20 @@ export default function QuestionsPage({
         )}
 
         {/* Navigation */}
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           <button
             onClick={goPrev}
             disabled={current === 0}
-            className="flex-1 border border-slate-200 text-slate-700 font-semibold py-3 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 bg-neu-bg shadow-neu-flat text-slate-600 font-bold py-4 rounded-xl hover:shadow-neu-pressed transition-all disabled:opacity-40 disabled:shadow-neu-flat disabled:cursor-not-allowed"
           >
             ← Previous
           </button>
           <button
             onClick={goNext}
             disabled={answers[currentQ?.id] === undefined}
-            className="flex-1 bg-[#1e3a5f] text-white font-semibold py-3 rounded-xl hover:bg-[#16304f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 bg-neu-bg shadow-neu-flat text-[#1e3a5f] font-bold py-4 rounded-xl hover:shadow-neu-pressed transition-all disabled:opacity-40 disabled:shadow-neu-flat disabled:cursor-not-allowed"
           >
-            {current === questions.length - 1 ? "Review →" : "Next →"}
+            {current === questions.length - 1 ? "Review →" : "Skip →"}
           </button>
         </div>
 
@@ -239,8 +265,8 @@ export default function QuestionsPage({
 
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <nav className="border-b border-slate-100 bg-white px-6 py-4">
+    <div className="min-h-screen bg-neu-bg flex flex-col">
+      <nav className="bg-neu-bg/80 backdrop-blur shadow-sm px-6 py-4 z-10 sticky top-0">
         <a href="/" className="font-bold text-[#1e3a5f] text-base tracking-tight">PsychoMetric Pro</a>
       </nav>
       <div className="flex-1 flex items-center justify-center px-4 py-10">

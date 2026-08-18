@@ -21,10 +21,17 @@ export function verifyRazorpaySignature(
   paymentId: string,
   signature: string
 ): boolean {
-  const body      = `${orderId}|${paymentId}`;
-  const expected  = crypto
+  const body = `${orderId}|${paymentId}`;
+  const expected = crypto
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
     .update(body)
     .digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+
+  const expectedBuf = Buffer.from(expected);
+  const signatureBuf = Buffer.from(signature);
+
+  // Length check before timingSafeEqual — prevents RangeError on attacker-controlled input
+  if (expectedBuf.length !== signatureBuf.length) return false;
+
+  return crypto.timingSafeEqual(expectedBuf, signatureBuf);
 }

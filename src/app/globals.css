@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+@theme {
+  --color-neu-bg: #e0e5ec;
+  --color-neu-light: rgba(255, 255, 255, 0.8);
+  --color-neu-dark: rgba(163, 177, 198, 0.6);
+  --color-accent: #458B86;
+  --color-accent-hover: #3a7571;
+  
+  --shadow-neu-flat: 6px 6px 12px var(--color-neu-dark), -6px -6px 12px var(--color-neu-light);
+  --shadow-neu-pressed: inset 4px 4px 8px var(--color-neu-dark), inset -4px -4px 8px var(--color-neu-light);
+  --shadow-neu-sm: 4px 4px 8px var(--color-neu-dark), -4px -4px 8px var(--color-neu-light);
+}
+
 :root {
   --navy:  #1e3a5f;
   --slate: #475569;
@@ -7,6 +19,7 @@
 
 body {
   font-family: var(--font-inter, system-ui, sans-serif);
+  background-color: var(--color-neu-bg);
 }
 
 /* Smooth focus rings */

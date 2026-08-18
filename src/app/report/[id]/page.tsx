@@ -17,15 +17,15 @@ function TraitBar({ label, score }: { label: string; score: number }) {
   const color = TRAIT_COLORS[label] ?? "bg-slate-500";
   const level = score < 40 ? "Low" : score < 70 ? "Moderate" : "High";
   return (
-    <div className="mb-4">
-      <div className="flex justify-between items-center mb-1.5">
+    <div className="mb-5">
+      <div className="flex justify-between items-center mb-2">
         <span className="text-sm font-semibold text-slate-700">{label}</span>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 font-medium">{level}</span>
-          <span className="text-sm font-bold text-[#1e3a5f]">{score}%</span>
+          <span className="text-xs text-slate-500 font-bold">{level}</span>
+          <span className="text-sm font-black text-[#1e3a5f]">{score}%</span>
         </div>
       </div>
-      <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+      <div className="h-3 bg-neu-bg shadow-neu-pressed rounded-full overflow-hidden p-[1px]">
         <div
           className={`h-full ${color} rounded-full transition-all`}
           style={{ width: `${score}%` }}
@@ -42,8 +42,8 @@ function TraitBar({ label, score }: { label: string; score: number }) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-      <h2 className="text-base font-bold text-[#1e3a5f] mb-3 pb-2 border-b border-slate-100">{title}</h2>
+    <section className="bg-neu-bg rounded-3xl p-8 shadow-neu-flat border-4 border-neu-bg">
+      <h2 className="text-lg font-bold text-[#1e3a5f] mb-4 pb-3 border-b-2 border-slate-200/50">{title}</h2>
       {children}
     </section>
   );
@@ -127,22 +127,23 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neu-bg">
       {/* Header */}
-      <header className="bg-[#1e3a5f] text-white">
+      <header className="bg-neu-bg shadow-neu-sm border-b-4 border-neu-bg sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
             <div>
-              <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-1">PsychoMetric Pro</p>
-              <h1 className="text-2xl font-bold">Personality Assessment Report</h1>
-              <p className="text-blue-200 text-sm mt-1">{data.participantName} · {date}</p>
+              <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">PsychoMetric Pro</p>
+              <h1 className="text-2xl font-bold text-[#1e3a5f]">Personality Assessment Report</h1>
+              <p className="text-slate-500 text-sm mt-1">{data.participantName} · {date}</p>
             </div>
-            <Link
+            <a
               href={`/api/report/${id}/pdf`}
-              className="shrink-0 bg-white text-[#1e3a5f] font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-50 transition-colors text-sm"
+              className="shrink-0 bg-neu-bg shadow-neu-flat hover:shadow-neu-pressed text-[#1e3a5f] font-bold px-6 py-3 rounded-xl transition-all text-sm"
+              download
             >
               ⬇ Download PDF
-            </Link>
+            </a>
           </div>
         </div>
       </header>
@@ -151,10 +152,10 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         
         {/* Row 1: Participant Info & Profile at a Glance */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm flex flex-col justify-center space-y-4">
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Name</p><p className="font-semibold text-slate-800">{data.participantName}</p></div>
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Date</p><p className="font-semibold text-slate-800">{date}</p></div>
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Assessment ID</p><p className="font-semibold text-slate-800 font-mono text-xs">{data.assessmentId.slice(0, 8).toUpperCase()}</p></div>
+          <div className="bg-neu-bg rounded-3xl p-8 shadow-neu-flat border-4 border-neu-bg flex flex-col justify-center space-y-6">
+            <div><p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Name</p><p className="font-bold text-[#1e3a5f] text-lg">{data.participantName}</p></div>
+            <div><p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Date</p><p className="font-bold text-[#1e3a5f]">{date}</p></div>
+            <div><p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Assessment ID</p><p className="font-bold text-slate-600 font-mono text-sm">{data.assessmentId.slice(0, 8).toUpperCase()}</p></div>
           </div>
           
           <Section title="Profile at a Glance">
@@ -251,11 +252,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
               { trait: "Agreeableness", d: data.traitInsights.agreeableness },
               { trait: "Neuroticism", d: data.traitInsights.neuroticism },
             ].map(({ trait, d }) => (
-              <div key={trait} className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                <p className="text-sm font-bold text-[#1e3a5f] uppercase tracking-wide mb-2">{trait} — {d.score}% ({d.level})</p>
-                <div className="text-sm text-slate-700 leading-relaxed space-y-2">
-                  <p><span className="font-semibold text-slate-500">Meaning: </span>{d.meaning}</p>
-                  {d.implication && <p><span className="font-semibold text-slate-500">Practical Implication: </span>{d.implication}</p>}
+              <div key={trait} className="bg-neu-bg shadow-neu-pressed rounded-2xl p-5 border-none">
+                <p className="text-sm font-black text-[#1e3a5f] tracking-wide mb-2">{trait} — {d.score}% ({d.level})</p>
+                <div className="text-sm text-slate-600 leading-relaxed space-y-3">
+                  <p><span className="font-bold text-slate-500">Meaning: </span>{d.meaning}</p>
+                  {d.implication && <p><span className="font-bold text-slate-500">Practical Implication: </span>{d.implication}</p>}
                 </div>
               </div>
             ))}
@@ -330,7 +331,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
               <p className="font-semibold text-slate-500 mb-2">Potentially Compatible Roles:</p>
               <div className="flex flex-wrap gap-2">
                 {data.careerSuitability.roles.map((c, i) => (
-                  <span key={i} className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200">
+                  <span key={i} className="bg-neu-bg shadow-neu-flat text-[#1e3a5f] text-xs font-bold px-4 py-2 rounded-xl">
                     {c}
                   </span>
                 ))}
@@ -366,7 +367,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           <div className="space-y-4">
             {data.actionPlan.map((rec, i) => (
               <div key={i} className="flex gap-3 text-sm text-slate-700">
-                <span className="shrink-0 w-6 h-6 bg-[#1e3a5f] text-white text-xs font-bold rounded-full flex items-center justify-center mt-0.5">
+                <span className="shrink-0 w-8 h-8 bg-neu-bg shadow-neu-pressed text-[#1e3a5f] text-sm font-black rounded-full flex items-center justify-center">
                   {i + 1}
                 </span>
                 <div>
@@ -384,15 +385,16 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         </Section>
 
         {/* Download CTA */}
-        <div className="bg-[#1e3a5f] rounded-xl p-6 text-center">
-          <p className="text-white font-semibold mb-2">Save your report</p>
-          <p className="text-blue-200 text-sm mb-4">Download a PDF copy for your records.</p>
-          <Link
+        <div className="bg-neu-bg shadow-neu-pressed rounded-3xl p-10 text-center mb-8 border-4 border-neu-bg">
+          <p className="text-[#1e3a5f] text-xl font-bold mb-2">Save your report</p>
+          <p className="text-slate-500 text-sm mb-6 font-medium">Download a PDF copy for your records.</p>
+          <a
             href={`/api/report/${id}/pdf`}
-            className="inline-block bg-white text-[#1e3a5f] font-semibold px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors text-sm"
+            className="inline-block bg-neu-bg shadow-neu-flat hover:shadow-neu-pressed text-[#1e3a5f] font-bold px-8 py-4 rounded-xl transition-all"
+            download
           >
             ⬇ Download PDF Report
-          </Link>
+          </a>
         </div>
 
         {/* Disclaimer */}

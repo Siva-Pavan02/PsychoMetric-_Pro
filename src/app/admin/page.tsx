@@ -6,10 +6,10 @@ export const dynamic = "force-dynamic";
 
 function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-      <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+    <div className="bg-neu-bg rounded-2xl shadow-neu-flat p-6 border-4 border-neu-bg">
+      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</p>
       <p className="text-3xl font-black text-[#1e3a5f]">{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+      {sub && <p className="text-xs font-bold text-slate-500 mt-2">{sub}</p>}
     </div>
   );
 }
@@ -63,8 +63,8 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Revenue Breakdown */}
-      <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-        <h2 className="text-sm font-bold text-[#1e3a5f] mb-4 pb-2 border-b border-slate-100 uppercase tracking-widest">
+      <div className="bg-neu-bg rounded-3xl shadow-neu-flat p-8 border-4 border-neu-bg">
+        <h2 className="text-sm font-bold text-[#1e3a5f] mb-6 pb-3 border-b-2 border-slate-200/50 uppercase tracking-widest">
           Revenue Breakdown
         </h2>
         <div className="grid grid-cols-3 gap-6">
@@ -88,8 +88,8 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Payment Reconciliation */}
-      <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-        <h2 className="text-sm font-bold text-[#1e3a5f] mb-4 pb-2 border-b border-slate-100 uppercase tracking-widest">
+      <div className="bg-neu-bg rounded-3xl shadow-neu-flat p-8 border-4 border-neu-bg">
+        <h2 className="text-sm font-bold text-[#1e3a5f] mb-6 pb-3 border-b-2 border-slate-200/50 uppercase tracking-widest">
           Payment Reconciliation
         </h2>
         <div className="overflow-x-auto">
@@ -123,16 +123,16 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[#1e3a5f]">Recent Activity</h2>
-          <Link href="/admin/participants" className="text-xs text-[#1e3a5f] font-bold hover:underline">
+      <div className="bg-neu-bg rounded-3xl shadow-neu-flat border-4 border-neu-bg overflow-hidden">
+        <div className="p-6 border-b-2 border-slate-200/50 flex items-center justify-between">
+          <h2 className="text-lg font-black text-[#1e3a5f]">Recent Activity</h2>
+          <Link href="/admin/participants" className="text-xs text-[var(--color-accent)] font-bold hover:underline">
             View all →
           </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
+            <thead className="bg-neu-bg shadow-neu-pressed text-slate-500 text-xs uppercase font-black">
               <tr>
                 <th className="px-6 py-4">Participant</th>
                 <th className="px-6 py-4">Event</th>
@@ -141,7 +141,7 @@ export default async function AdminDashboard() {
                 <th className="px-6 py-4">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200/50">
               {recentActivity.map((p) => {
                 const payment = p.payments?.[0];
                 const assessment = p.assessments?.[0];
@@ -165,7 +165,7 @@ export default async function AdminDashboard() {
                   : "—";
 
                 return (
-                  <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={p.id} className="hover:bg-neu-bg hover:shadow-neu-pressed transition-all">
                     <td className="px-6 py-4 font-semibold text-[#1e3a5f]">{p.name}</td>
                     <td className="px-6 py-4 text-slate-600">{eventStr}</td>
                     <td className="px-6 py-4 text-slate-600">{displayAmount}</td>

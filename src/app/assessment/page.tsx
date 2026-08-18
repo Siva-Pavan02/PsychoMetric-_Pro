@@ -178,7 +178,7 @@ export default function AssessmentPage() {
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
 
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-neu-bg flex flex-col items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
@@ -186,17 +186,20 @@ export default function AssessmentPage() {
             <p className="text-slate-500 text-sm mt-1">OCEAN Personality Assessment</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          <div className="bg-neu-bg rounded-3xl shadow-neu-flat p-10 border-4 border-neu-bg">
             {/* Progress */}
-            <div className="flex gap-2 mb-8">
-              {(["details", "paying"] as Step[]).map((s, i) => (
-                <div
-                  key={s}
-                  className={`h-1.5 flex-1 rounded-full transition-colors ${
-                    step === s || (step === "done" || i === 0 && step !== "details") ? "bg-[#1e3a5f]" : "bg-slate-200"
-                  }`}
-                />
-              ))}
+            <div className="flex gap-3 mb-8">
+              {(["details", "paying"] as Step[]).map((s, i) => {
+                const active = step === s || (step === "done" || (i === 0 && step !== "details"));
+                return (
+                  <div
+                    key={s}
+                    className={`h-2 flex-1 rounded-full transition-all ${
+                      active ? "bg-[#1e3a5f] shadow-neu-flat" : "bg-neu-bg shadow-neu-pressed"
+                    }`}
+                  />
+                );
+              })}
             </div>
 
             {step === "paying" && (
@@ -213,7 +216,7 @@ export default function AssessmentPage() {
                 <p className="text-slate-500 text-sm mb-6">We only need a few details to create your assessment.</p>
 
                 {errorMsg && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">
+                  <div className="bg-neu-bg shadow-neu-pressed ring-1 ring-red-300 text-red-600 text-sm font-medium rounded-xl px-5 py-4 mb-5">
                     {errorMsg}
                   </div>
                 )}
@@ -238,7 +241,7 @@ export default function AssessmentPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-[#1e3a5f] text-white font-semibold py-3.5 rounded-xl hover:bg-[#16304f] transition-colors disabled:opacity-60 mt-2"
+                    className="w-full bg-neu-bg text-[#1e3a5f] font-bold py-4 rounded-xl shadow-neu-flat hover:shadow-neu-pressed transition-all disabled:opacity-60 disabled:hover:shadow-neu-flat mt-4"
                   >
                     {loading ? "Please wait…" : "Continue to Payment →"}
                   </button>
@@ -264,7 +267,7 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
+      <label htmlFor={id} className="block text-sm font-semibold text-slate-600 mb-2 pl-1">
         {label}
       </label>
       <input
@@ -272,12 +275,12 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         aria-describedby={error ? `${id}-error` : undefined}
         aria-invalid={!!error}
-        className={`w-full border rounded-lg px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] transition-shadow ${
-          error ? "border-red-400 bg-red-50" : "border-slate-200 bg-white"
+        className={`w-full rounded-xl px-5 py-3.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all border-none ${
+          error ? "bg-neu-bg shadow-neu-pressed ring-2 ring-red-400" : "bg-neu-bg shadow-neu-pressed"
         }`}
       />
       {error && (
-        <p id={`${id}-error`} role="alert" className="text-xs text-red-600 mt-1">{error}</p>
+        <p id={`${id}-error`} role="alert" className="text-xs font-medium text-red-500 mt-2 pl-1">{error}</p>
       )}
     </div>
   );

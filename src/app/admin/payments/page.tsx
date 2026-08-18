@@ -35,10 +35,10 @@ export default async function PaymentsPage({
         <p className="text-slate-500 text-sm">Server-verified successful transactions only.</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-neu-bg rounded-3xl shadow-neu-flat border-4 border-neu-bg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
+            <thead className="bg-neu-bg shadow-neu-pressed text-slate-500 text-xs uppercase font-black">
               <tr>
                 <th className="px-6 py-4">Participant</th>
                 <th className="px-6 py-4">Amount</th>
@@ -49,7 +49,7 @@ export default async function PaymentsPage({
                 <th className="px-6 py-4">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200/50">
               {payments.map((p) => {
                 const date = new Date(p.createdAt).toLocaleDateString("en-IN", {
                   month: "short",
@@ -62,7 +62,7 @@ export default async function PaymentsPage({
                 const displayAmount = `₹${paiseToRupees(p.amount).toFixed(0)}`;
 
                 return (
-                  <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={p.id} className="hover:bg-neu-bg hover:shadow-neu-pressed transition-all">
                     <td className="px-6 py-4">
                       {p.participant ? (
                         <Link

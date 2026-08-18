@@ -35,10 +35,10 @@ export default async function ReportsPage({
         <p className="text-slate-500 text-sm">Generated personality reports.</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-neu-bg rounded-3xl shadow-neu-flat border-4 border-neu-bg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
+            <thead className="bg-neu-bg shadow-neu-pressed text-slate-500 text-xs uppercase font-black">
               <tr>
                 <th className="px-6 py-4">Participant</th>
                 <th className="px-6 py-4">Status</th>
@@ -48,14 +48,14 @@ export default async function ReportsPage({
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200/50">
               {reports.map((r) => {
                 const date = new Date(r.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
                 
                 const participant = r.assessment?.participant;
                 
                 return (
-                  <tr key={r.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={r.id} className="hover:bg-neu-bg hover:shadow-neu-pressed transition-all">
                     <td className="px-6 py-4">
                       {participant ? (
                         <Link href={`/admin/participants/${participant.id}`} className="font-semibold text-[#1e3a5f] hover:underline">
