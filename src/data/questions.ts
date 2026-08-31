@@ -74,7 +74,8 @@ export const QUESTION_COUNT = QUESTIONS.length; // 50
 
 /** Returns questions sorted by order — safe to call from client (no scoring metadata). */
 export function getQuestionTexts(): { id: string; text: string; order: number }[] {
-  return QUESTIONS
+  // Sort a copy: QUESTIONS is module-level state the scoring engine also iterates.
+  return [...QUESTIONS]
     .sort((a, b) => a.order - b.order)
     .map(({ id, text, order }) => ({ id, text, order }));
 }

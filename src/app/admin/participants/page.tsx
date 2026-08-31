@@ -30,26 +30,35 @@ export default async function ParticipantsPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-black text-[#1e3a5f] mb-1">Participants</h1>
-        <p className="text-slate-500 text-sm">All registered participants.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Operations</p>
+          <h1 className="mt-2 text-3xl font-black tracking-[-0.06em] text-[#10233d]">Participants</h1>
+          <p className="mt-2 text-sm text-slate-600">All registered participants.</p>
+        </div>
+        <span className="self-start rounded-full bg-[#edf3f8] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[#1d4f7a] sm:self-auto">
+          {total} total
+        </span>
       </div>
 
-      <div className="bg-neu-bg rounded-3xl shadow-neu-flat border-4 border-neu-bg overflow-hidden">
+      <section className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white/80 shadow-[0_24px_38px_rgba(15,23,42,0.07)]">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-neu-bg shadow-neu-pressed text-slate-500 text-xs uppercase font-black">
+          <table className="w-full text-left text-sm">
+            <caption className="sr-only">
+              Registered participants, page {currentPage} of {Math.max(totalPages, 1)}
+            </caption>
+            <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
               <tr>
-                <th className="px-6 py-4">Name</th>
-                <th className="px-6 py-4">Email</th>
-                <th className="px-6 py-4">Payment</th>
-                <th className="px-6 py-4">Amount</th>
-                <th className="px-6 py-4">Assessment</th>
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th scope="col" className="px-6 py-4">Name</th>
+                <th scope="col" className="px-6 py-4">Email</th>
+                <th scope="col" className="px-6 py-4">Payment</th>
+                <th scope="col" className="px-6 py-4">Amount</th>
+                <th scope="col" className="px-6 py-4">Assessment</th>
+                <th scope="col" className="px-6 py-4">Date</th>
+                <th scope="col" className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200/50">
+            <tbody className="divide-y divide-slate-200">
               {participants.map((p) => {
                 const payment = p.payments?.[0];
                 const assessment = p.assessments?.[0];
@@ -66,41 +75,42 @@ export default async function ParticipantsPage({
                   : "—";
 
                 return (
-                  <tr key={p.id} className="hover:bg-neu-bg hover:shadow-neu-pressed transition-all">
-                    <td className="px-6 py-4 font-semibold text-[#1e3a5f]">{p.name}</td>
-                    <td className="px-6 py-4 text-slate-500">{p.email}</td>
+                  <tr key={p.id} className="transition-colors hover:bg-slate-50/80">
+                    <td className="px-6 py-4 font-bold text-[#10233d]">{p.name}</td>
+                    <td className="px-6 py-4 text-slate-600">{p.email}</td>
                     <td className="px-6 py-4">
                       {isPaid ? (
-                        <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-bold">
+                        <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-700">
                           SUCCESS
                         </span>
                       ) : payment?.status === "FAILED" ? (
-                        <span className="px-2.5 py-1 bg-red-100 text-red-700 rounded-md text-xs font-bold">
+                        <span className="rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-red-700">
                           FAILED
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md text-xs font-bold">
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-600">
                           {payment?.status ?? "NONE"}
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-slate-700 font-medium">{displayAmount}</td>
+                    <td className="px-6 py-4 font-medium text-slate-700">{displayAmount}</td>
                     <td className="px-6 py-4">
                       {isCompleted ? (
-                        <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-bold">
+                        <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-700">
                           COMPLETED
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-bold">
+                        <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
                           {assessment?.status ?? "NONE"}
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">{date}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-xs text-slate-500">{date}</td>
                     <td className="px-6 py-4 text-right">
                       <Link
                         href={`/admin/participants/${p.id}`}
-                        className="text-[#1e3a5f] font-semibold text-sm hover:underline"
+                        aria-label={`View participant ${p.name}`}
+                        className="rounded-full text-xs font-bold uppercase tracking-[0.14em] text-[#1d4f7a] hover:underline"
                       >
                         View
                       </Link>
@@ -110,7 +120,7 @@ export default async function ParticipantsPage({
               })}
               {participants.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
+                  <td colSpan={7} className="px-6 py-10 text-center text-slate-500">
                     No participants found.
                   </td>
                 </tr>
@@ -120,15 +130,19 @@ export default async function ParticipantsPage({
         </div>
 
         {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-100 flex justify-between items-center bg-slate-50">
-            <span className="text-xs text-slate-500 font-medium">
+          <nav
+            aria-label="Participants pagination"
+            className="flex items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/60 px-6 py-4"
+          >
+            <span className="text-xs font-medium text-slate-500">
               Page {currentPage} of {totalPages}
             </span>
             <div className="flex gap-2">
               {currentPage > 1 && (
                 <Link
                   href={`/admin/participants?page=${currentPage - 1}`}
-                  className="px-3 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold text-slate-600 hover:bg-slate-50"
+                  rel="prev"
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-[#10233d]"
                 >
                   Prev
                 </Link>
@@ -136,15 +150,16 @@ export default async function ParticipantsPage({
               {currentPage < totalPages && (
                 <Link
                   href={`/admin/participants?page=${currentPage + 1}`}
-                  className="px-3 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold text-slate-600 hover:bg-slate-50"
+                  rel="next"
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-[#10233d]"
                 >
                   Next
                 </Link>
               )}
             </div>
-          </div>
+          </nav>
         )}
-      </div>
+      </section>
     </div>
   );
 }

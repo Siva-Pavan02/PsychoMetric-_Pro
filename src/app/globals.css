@@ -1,29 +1,80 @@
 @import "tailwindcss";
 
 @theme {
-  --color-neu-bg: #e0e5ec;
-  --color-neu-light: rgba(255, 255, 255, 0.8);
-  --color-neu-dark: rgba(163, 177, 198, 0.6);
-  --color-accent: #458B86;
-  --color-accent-hover: #3a7571;
-  
+  --color-neu-bg: #edf3f8;
+  --color-neu-light: rgba(255, 255, 255, 0.88);
+  --color-neu-dark: rgba(148, 163, 184, 0.22);
+  --color-accent: #1d4f7a;
+  --color-accent-soft: #dfeef9;
+  --color-accent-strong: #12395d;
+  --color-teal: #2b7a78;
+  --color-success: #0f766e;
+  --color-warning: #b45309;
+  --color-error: #b91c1c;
+  --color-surface: #f8fafc;
+  --color-surface-strong: #ffffff;
+  --color-ink: #10233d;
+  --color-muted: #5b6c83;
+  --color-border: rgba(15, 23, 42, 0.08);
+  --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 10px 25px rgba(15, 23, 42, 0.08);
+  --shadow-pressed: inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 rgba(15, 23, 42, 0.04);
+
+  /* Neumorphic tokens still required by the report page and admin list pages.
+     Geometry as originally authored; colours reuse the vars above so elevation
+     tracks the current lighter palette. Tune strength via --color-neu-dark alpha. */
   --shadow-neu-flat: 6px 6px 12px var(--color-neu-dark), -6px -6px 12px var(--color-neu-light);
   --shadow-neu-pressed: inset 4px 4px 8px var(--color-neu-dark), inset -4px -4px 8px var(--color-neu-light);
   --shadow-neu-sm: 4px 4px 8px var(--color-neu-dark), -4px -4px 8px var(--color-neu-light);
 }
 
 :root {
-  --navy:  #1e3a5f;
-  --slate: #475569;
+  --navy: #10233d;
+  --navy-strong: #0b1d32;
+  --slate: #5b6c83;
+  --teal: #2b7a78;
+  --surface: #f8fafc;
+  --surface-strong: #ffffff;
+  --bg-soft: #edf3f8;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  font-family: var(--font-inter, system-ui, sans-serif);
-  background-color: var(--color-neu-bg);
+  font-family: var(--font-inter, "Inter", "Segoe UI", sans-serif);
+  background:
+    radial-gradient(circle at top, rgba(29, 79, 122, 0.08), transparent 38%),
+    linear-gradient(180deg, #edf3f8 0%, #f7fafc 100%);
+  color: var(--navy);
+  text-rendering: optimizeLegibility;
 }
 
-/* Smooth focus rings */
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(29, 79, 122, 0.2);
+}
+
 :focus-visible {
-  outline: 2px solid var(--navy);
+  outline: 2px solid rgba(29, 79, 122, 0.85);
   outline-offset: 2px;
+}
+
+@keyframes confirm-pop {
+  0%   { transform: scale(0); opacity: 0; }
+  50%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

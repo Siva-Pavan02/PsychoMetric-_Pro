@@ -4,10 +4,16 @@ import crypto from "crypto";
 const SESSION_COOKIE = "admin_session";
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
 
+/**
+ * HMAC key for session tokens. Deliberately separate from ADMIN_PASSWORD_HASH:
+ * a bcrypt hash is widely treated as safe to expose, but as signing material it
+ * would let anyone holding it mint admin sessions without cracking the password.
+ * Missing secret throws — verifySession catches and denies, so this fails closed.
+ */
 function getSecretKey(): string {
-  const secret = process.env.ADMIN_PASSWORD_HASH;
+  const secret = process.env.ADMIN_SESSION_SECRET;
   if (!secret) {
-    throw new Error("ADMIN_PASSWORD_HASH environment variable is required.");
+    throw new Error("ADMIN_SESSION_SECRET environment variable is required.");
   }
   return secret;
 }

@@ -122,7 +122,7 @@ function deriveResponseQuality(responses: RawResponse[]) {
   if (extremes > 0.8) flags.push("Unusually high rate of extreme responses (1 or 5)");
   if (middles > 0.8) flags.push("Unusually high rate of neutral responses (3)");
 
-  return { flags, valid: true };
+  return { flags, valid: flags.length === 0 };
 }
 
 // ─── Multi-trait derived sections ─────────────────────────────────────────

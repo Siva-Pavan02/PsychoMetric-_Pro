@@ -2,15 +2,23 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { ReportData, LegacyReportData, TraitScores, TraitLevel } from "@/types";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
+// Reports are reachable by opaque ID alone — keep them out of search indexes,
+// and stop crawlers following through to the PDF route.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
+
+/* ── Brand-palette trait colors ── */
 const TRAIT_COLORS: Record<string, string> = {
-  Openness:          "bg-violet-500",
-  Conscientiousness: "bg-blue-500",
-  Extraversion:      "bg-amber-500",
-  Agreeableness:     "bg-emerald-500",
-  Neuroticism:       "bg-rose-500",
+  Openness:          "bg-[#2b7a78]",
+  Conscientiousness: "bg-[#1d4f7a]",
+  Extraversion:      "bg-[#10233d]",
+  Agreeableness:     "bg-[#3d8b8a]",
+  Neuroticism:       "bg-[#5b6c83]",
 };
 
 function TraitBar({ label, score }: { label: string; score: number }) {
@@ -18,16 +26,16 @@ function TraitBar({ label, score }: { label: string; score: number }) {
   const level = score < 40 ? "Low" : score < 70 ? "Moderate" : "High";
   return (
     <div className="mb-5">
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-semibold text-slate-700">{label}</span>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm font-semibold text-[#10233d]">{label}</span>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 font-bold">{level}</span>
-          <span className="text-sm font-black text-[#1e3a5f]">{score}%</span>
+          <span className="rounded-full bg-[#edf3f8] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">{level}</span>
+          <span className="text-sm font-black tabular-nums text-[#10233d]">{score}%</span>
         </div>
       </div>
-      <div className="h-3 bg-neu-bg shadow-neu-pressed rounded-full overflow-hidden p-[1px]">
+      <div className="h-2.5 overflow-hidden rounded-full bg-[#edf3f8]">
         <div
-          className={`h-full ${color} rounded-full transition-all`}
+          className={`h-full ${color} rounded-full`}
           style={{ width: `${score}%` }}
           role="progressbar"
           aria-valuenow={score}
@@ -40,10 +48,20 @@ function TraitBar({ label, score }: { label: string; score: number }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/* ── Card wrappers with hierarchy levels ── */
+function Card({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <section className="bg-neu-bg rounded-3xl p-8 shadow-neu-flat border-4 border-neu-bg">
-      <h2 className="text-lg font-bold text-[#1e3a5f] mb-4 pb-3 border-b-2 border-slate-200/50">{title}</h2>
+    <section className={`rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-[0_10px_25px_rgba(15,23,42,0.06)] sm:p-8 ${className}`}>
+      <h2 className="mb-5 border-b border-slate-200/80 pb-3 text-base font-black tracking-[-0.03em] text-[#10233d]">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function LightCard({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
+  return (
+    <section className={`rounded-2xl border border-slate-200/60 bg-[#f8fafc] p-5 sm:p-6 ${className}`}>
+      <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.12em] text-slate-500">{title}</h2>
       {children}
     </section>
   );
@@ -54,12 +72,21 @@ function BulletList({ items }: { items: string[] }) {
   return (
     <ul className="space-y-2">
       {items.map((item, i) => (
-        <li key={i} className="flex gap-2 text-sm text-slate-700 leading-relaxed">
-          <span className="text-[#1e3a5f] font-bold mt-0.5 shrink-0">•</span>
+        <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-slate-700">
+          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2b7a78]" />
           <span>{item}</span>
         </li>
       ))}
     </ul>
+  );
+}
+
+function KeyValue({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="text-sm text-slate-700">
+      <span className="font-semibold text-slate-500">{label}: </span>
+      {children}
+    </div>
   );
 }
 
@@ -127,124 +154,112 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   });
 
   return (
-    <div className="min-h-screen bg-neu-bg">
-      {/* Header */}
-      <header className="bg-neu-bg shadow-neu-sm border-b-4 border-neu-bg sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
-            <div>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">PsychoMetric Pro</p>
-              <h1 className="text-2xl font-bold text-[#1e3a5f]">Personality Assessment Report</h1>
-              <p className="text-slate-500 text-sm mt-1">{data.participantName} · {date}</p>
-            </div>
-            <a
-              href={`/api/report/${id}/pdf`}
-              className="shrink-0 bg-neu-bg shadow-neu-flat hover:shadow-neu-pressed text-[#1e3a5f] font-bold px-6 py-3 rounded-xl transition-all text-sm"
-              download
-            >
-              ⬇ Download PDF
-            </a>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(29,79,122,0.07),_transparent_30%),linear-gradient(180deg,#edf3f8_0%,#f8fafc_100%)]">
+      {/* ── Header ── */}
+      <header className="sticky top-0 z-10 border-b border-slate-200/80 bg-white/75 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#10233d] text-sm font-black text-white">P</span>
+            <span className="text-base font-black tracking-[-0.05em] text-[#10233d]">PsychoMetric Pro</span>
           </div>
+          <a
+            href={`/api/report/${id}/pdf`}
+            className="inline-flex items-center gap-2 rounded-full bg-[#10233d] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(16,35,61,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0d1f35]"
+            download
+          >
+            ↓ Download PDF
+          </a>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-5">
-        
-        {/* Row 1: Participant Info & Profile at a Glance */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="bg-neu-bg rounded-3xl p-8 shadow-neu-flat border-4 border-neu-bg flex flex-col justify-center space-y-6">
-            <div><p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Name</p><p className="font-bold text-[#1e3a5f] text-lg">{data.participantName}</p></div>
-            <div><p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Date</p><p className="font-bold text-[#1e3a5f]">{date}</p></div>
-            <div><p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Assessment ID</p><p className="font-bold text-slate-600 font-mono text-sm">{data.assessmentId.slice(0, 8).toUpperCase()}</p></div>
+      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* ═══ HERO ═══ */}
+        <section className="mb-8 overflow-hidden rounded-[2rem] border border-slate-200 bg-white/80 shadow-[0_28px_42px_rgba(15,23,42,0.08)]">
+          {/* Navy banner */}
+          <div className="bg-[linear-gradient(135deg,#0d1f35,#1d4f7a_60%,#2b7a78)] px-6 py-8 text-white sm:px-10 sm:py-10">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky-200/80">Personality Assessment Report</p>
+            <h1 className="mt-3 text-3xl font-black tracking-[-0.06em] sm:text-4xl">{data.participantName}</h1>
+            <p className="mt-2 text-sm font-medium text-sky-100/70">{date} · ID {data.assessmentId.slice(0, 8).toUpperCase()}</p>
           </div>
-          
-          <Section title="Profile at a Glance">
-            {data.profileAtGlance.primaryStrength && (
-              <div className="mb-2">
-                <span className="text-xs font-bold text-slate-400 uppercase">Primary Strength</span>
-                <p className="text-sm font-semibold text-[#1e3a5f]">{data.profileAtGlance.primaryStrength.trait} ({data.profileAtGlance.primaryStrength.score}%)</p>
+
+          {/* Profile summary + at-a-glance */}
+          <div className="px-6 py-6 sm:px-10 sm:py-8">
+            <p className="text-sm leading-7 text-slate-700">{data.personalityTypeSummary}</p>
+
+            {/* Strengths badges */}
+            {(data.profileAtGlance.primaryStrength || data.profileAtGlance.secondaryStrength) && (
+              <div className="mt-5 flex flex-wrap gap-3">
+                {data.profileAtGlance.primaryStrength && (
+                  <div className="rounded-2xl border border-[#2b7a78]/20 bg-[#e8f4f3] px-4 py-2.5">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#2b7a78]">Primary Strength</p>
+                    <p className="mt-0.5 text-sm font-black text-[#10233d]">{data.profileAtGlance.primaryStrength.trait} — {data.profileAtGlance.primaryStrength.score}%</p>
+                  </div>
+                )}
+                {data.profileAtGlance.secondaryStrength && (
+                  <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] px-4 py-2.5">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">Secondary Strength</p>
+                    <p className="mt-0.5 text-sm font-black text-[#10233d]">{data.profileAtGlance.secondaryStrength.trait} — {data.profileAtGlance.secondaryStrength.score}%</p>
+                  </div>
+                )}
               </div>
             )}
-            {data.profileAtGlance.secondaryStrength && (
-              <div className="mb-2">
-                <span className="text-xs font-bold text-slate-400 uppercase">Secondary Strength</span>
-                <p className="text-sm font-semibold text-[#1e3a5f]">{data.profileAtGlance.secondaryStrength.trait} ({data.profileAtGlance.secondaryStrength.score}%)</p>
-              </div>
-            )}
+
             {data.profileAtGlance.balancedDimensions.length > 0 && (
-              <div className="mb-2">
-                <span className="text-xs font-bold text-slate-400 uppercase">Balanced Dimensions</span>
-                <p className="text-sm text-slate-700">{data.profileAtGlance.balancedDimensions.map(t => `${t.trait} (${t.score}%)`).join(", ")}</p>
+              <div className="mt-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Balanced Dimensions</p>
+                <p className="mt-1 text-sm text-slate-600">{data.profileAtGlance.balancedDimensions.map(t => `${t.trait} (${t.score}%)`).join(", ")}</p>
               </div>
             )}
             {data.profileAtGlance.developmentFocus.length > 0 && (
-              <div>
-                <span className="text-xs font-bold text-slate-400 uppercase">Development Focus</span>
-                <p className="text-sm text-slate-700">{data.profileAtGlance.developmentFocus.map(t => `${t.trait} (${t.score}%)`).join(", ")}</p>
+              <div className="mt-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Development Focus</p>
+                <p className="mt-1 text-sm text-slate-600">{data.profileAtGlance.developmentFocus.map(t => `${t.trait} (${t.score}%)`).join(", ")}</p>
               </div>
             )}
-            {!data.profileAtGlance.primaryStrength && data.profileAtGlance.balancedDimensions.length === 0 && (
-              <p className="text-sm text-slate-500 italic">See trait scores below for profile details.</p>
-            )}
-          </Section>
-        </div>
-
-        {/* OCEAN Scores & Legend */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="md:col-span-2">
-            <Section title="Personality Trait Scores">
-              <TraitBar label="Openness"          score={data.scores.openness}          />
-              <TraitBar label="Conscientiousness"  score={data.scores.conscientiousness}  />
-              <TraitBar label="Extraversion"       score={data.scores.extraversion}       />
-              <TraitBar label="Agreeableness"      score={data.scores.agreeableness}      />
-              <TraitBar label="Neuroticism"        score={data.scores.neuroticism}        />
-            </Section>
           </div>
-          
-          <div className="flex flex-col gap-5">
-            <Section title="Score Interpretation">
-              <div className="space-y-3 text-sm">
+        </section>
+
+        {/* ═══ OCEAN SCORES ═══ */}
+        <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <Card title="Personality Trait Scores" className="md:col-span-2">
+            <TraitBar label="Openness"          score={data.scores.openness}          />
+            <TraitBar label="Conscientiousness"  score={data.scores.conscientiousness}  />
+            <TraitBar label="Extraversion"       score={data.scores.extraversion}       />
+            <TraitBar label="Agreeableness"      score={data.scores.agreeableness}      />
+            <TraitBar label="Neuroticism"        score={data.scores.neuroticism}        />
+          </Card>
+
+          <div className="flex flex-col gap-6">
+            <LightCard title="Score Key">
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-slate-500">Low</span><span className="font-medium text-slate-700">{data.scoreLegend.low}</span></div>
                 <div className="flex justify-between"><span className="text-slate-500">Moderate</span><span className="font-medium text-slate-700">{data.scoreLegend.moderate}</span></div>
                 <div className="flex justify-between"><span className="text-slate-500">High</span><span className="font-medium text-slate-700">{data.scoreLegend.high}</span></div>
               </div>
-            </Section>
-            
-            <Section title="Trait Ranking">
-              <ol className="list-decimal list-inside space-y-1.5 text-sm text-slate-700">
+            </LightCard>
+
+            <LightCard title="Trait Ranking">
+              <ol className="space-y-1.5 text-sm text-slate-700">
                 {data.traitRanking.map((t, i) => (
-                  <li key={i}>
-                    <span className="font-medium">{t.trait}</span> <span className="text-slate-400">— {t.score}%</span>
+                  <li key={i} className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#edf3f8] text-[10px] font-black text-[#1d4f7a]">{i + 1}</span>
+                    <span className="font-medium">{t.trait}</span>
+                    <span className="ml-auto tabular-nums text-slate-400">{t.score}%</span>
                   </li>
                 ))}
               </ol>
-            </Section>
+            </LightCard>
           </div>
         </div>
 
-        <Section title="Personality Type Summary">
-          <p className="text-sm text-slate-700 leading-relaxed font-medium">{data.personalityTypeSummary}</p>
-        </Section>
+        {/* ═══ OVERALL PROFILE ═══ */}
+        <Card title="Overall Personality Profile" className="mb-6">
+          <p className="text-sm leading-7 text-slate-700">{data.overallProfile}</p>
+        </Card>
 
-        <Section title="Overall Personality Profile">
-          <p className="text-sm text-slate-700 leading-relaxed">{data.overallProfile}</p>
-        </Section>
-
-        {/* Methodology */}
-        <Section title="Assessment Methodology">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-2 text-sm">
-            <div><span className="block text-xs font-bold text-slate-400 uppercase mb-0.5">Model</span><span className="text-slate-700">{data.methodology.model}</span></div>
-            <div><span className="block text-xs font-bold text-slate-400 uppercase mb-0.5">Total Items</span><span className="text-slate-700">{data.methodology.items}</span></div>
-            <div><span className="block text-xs font-bold text-slate-400 uppercase mb-0.5">Items per Trait</span><span className="text-slate-700">{data.methodology.itemsPerTrait}</span></div>
-            <div><span className="block text-xs font-bold text-slate-400 uppercase mb-0.5">Response Scale</span><span className="text-slate-700">{data.methodology.scale}</span></div>
-            <div><span className="block text-xs font-bold text-slate-400 uppercase mb-0.5">Assessment Type</span><span className="text-slate-700">{data.methodology.type}</span></div>
-            <div><span className="block text-xs font-bold text-slate-400 uppercase mb-0.5">Scoring</span><span className="text-slate-700">{data.methodology.scoring}</span></div>
-          </div>
-        </Section>
-
-        {/* Trait Insights */}
-        <Section title="Trait-Level Insights">
-          <div className="space-y-5">
+        {/* ═══ TRAIT INSIGHTS ═══ */}
+        <Card title="Trait-Level Insights" className="mb-6">
+          <div className="space-y-4">
             {[
               { trait: "Openness", d: data.traitInsights.openness },
               { trait: "Conscientiousness", d: data.traitInsights.conscientiousness },
@@ -252,156 +267,177 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
               { trait: "Agreeableness", d: data.traitInsights.agreeableness },
               { trait: "Neuroticism", d: data.traitInsights.neuroticism },
             ].map(({ trait, d }) => (
-              <div key={trait} className="bg-neu-bg shadow-neu-pressed rounded-2xl p-5 border-none">
-                <p className="text-sm font-black text-[#1e3a5f] tracking-wide mb-2">{trait} — {d.score}% ({d.level})</p>
-                <div className="text-sm text-slate-600 leading-relaxed space-y-3">
-                  <p><span className="font-bold text-slate-500">Meaning: </span>{d.meaning}</p>
-                  {d.implication && <p><span className="font-bold text-slate-500">Practical Implication: </span>{d.implication}</p>}
+              <div key={trait} className="rounded-xl border border-slate-200/60 bg-[#f8fafc] p-4 sm:p-5">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-black text-[#10233d]">{trait}</h3>
+                  <span className="rounded-full bg-[#edf3f8] px-2.5 py-0.5 text-[10px] font-bold tabular-nums text-[#1d4f7a]">
+                    {d.score}% · {d.level}
+                  </span>
                 </div>
+                <p className="text-sm leading-relaxed text-slate-600">{d.meaning}</p>
+                {d.implication && (
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    <span className="font-semibold text-slate-500">Implication: </span>{d.implication}
+                  </p>
+                )}
               </div>
             ))}
           </div>
-        </Section>
+        </Card>
 
-        {/* Two-column structural grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <Section title="Major Strengths">
-            <div className="space-y-3">
+        {/* ═══ BEHAVIOURAL PROFILE — 2-col grid ═══ */}
+        <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Card title="Major Strengths">
+            <div className="space-y-4">
               {data.strengths.map((s, i) => (
                 <div key={i} className="text-sm">
-                  <p className="font-semibold text-[#1e3a5f]">{s.strength}</p>
-                  {s.drivenBy && <p className="text-xs text-slate-500 mt-0.5">Driven by: {s.drivenBy}</p>}
+                  <p className="font-semibold text-[#10233d]">{s.strength}</p>
+                  {s.drivenBy && <p className="mt-0.5 text-xs text-slate-500">Driven by: {s.drivenBy}</p>}
+                  {s.tradeOff && <p className="mt-0.5 text-xs italic text-slate-400">Trade-off: {s.tradeOff}</p>}
                 </div>
               ))}
             </div>
-          </Section>
-          
-          <Section title="Leadership Potential">
-            <div className="text-sm text-slate-700 space-y-2">
-              <p><span className="font-semibold text-slate-500">Style: </span>{data.leadership.style}</p>
-              {data.leadership.strengths && <p><span className="font-semibold text-slate-500">Strengths: </span>{data.leadership.strengths}</p>}
-              {data.leadership.teamContribution && <p><span className="font-semibold text-slate-500">Team Contribution: </span>{data.leadership.teamContribution}</p>}
-              {data.leadership.development && <p><span className="font-semibold text-slate-500">Development Opportunity: </span>{data.leadership.development}</p>}
-            </div>
-          </Section>
+          </Card>
 
-          <Section title="Communication Style">
-            <div className="text-sm text-slate-700 space-y-2">
-              <p><span className="font-semibold text-slate-500">Preferred Style: </span>{data.communication.preferredStyle}</p>
-              {data.communication.teamTendency && <p><span className="font-semibold text-slate-500">Team Tendency: </span>{data.communication.teamTendency}</p>}
-              {data.communication.strength && <p><span className="font-semibold text-slate-500">Potential Strength: </span>{data.communication.strength}</p>}
-              {data.communication.blindSpot && <p><span className="font-semibold text-slate-500">Potential Blind Spot: </span>{data.communication.blindSpot}</p>}
+          <Card title="Leadership Potential">
+            <div className="space-y-2 text-sm text-slate-700">
+              <KeyValue label="Style">{data.leadership.style}</KeyValue>
+              {data.leadership.strengths && <KeyValue label="Strengths">{data.leadership.strengths}</KeyValue>}
+              {data.leadership.teamContribution && <KeyValue label="Team Contribution">{data.leadership.teamContribution}</KeyValue>}
+              {data.leadership.development && <KeyValue label="Development">{data.leadership.development}</KeyValue>}
             </div>
-          </Section>
-          
-          <Section title="Decision-Making Style">
-            <div className="text-sm text-slate-700 space-y-2">
-              <p><span className="font-semibold text-slate-500">Approach: </span>{data.decisionMaking.structuredVsExploratory}</p>
-              {data.decisionMaking.speedVsDeliberation && <p><span className="font-semibold text-slate-500">Pace: </span>{data.decisionMaking.speedVsDeliberation}</p>}
-              {data.decisionMaking.peopleConsiderations && <p><span className="font-semibold text-slate-500">People Considerations: </span>{data.decisionMaking.peopleConsiderations}</p>}
-              {data.decisionMaking.underUncertainty && <p><span className="font-semibold text-slate-500">Under Uncertainty: </span>{data.decisionMaking.underUncertainty}</p>}
-            </div>
-          </Section>
+          </Card>
 
-          <Section title="Learning Style">
-            <div className="text-sm text-slate-700 space-y-2">
-              <p><span className="font-semibold text-slate-500">Preferred Structure: </span>{data.learningStyle.preferredStructure}</p>
-              {data.learningStyle.pace && <p><span className="font-semibold text-slate-500">Pace: </span>{data.learningStyle.pace}</p>}
-              {data.learningStyle.feedback && <p><span className="font-semibold text-slate-500">Feedback: </span>{data.learningStyle.feedback}</p>}
-              {data.learningStyle.independentVsCollaborative && <p><span className="font-semibold text-slate-500">Format: </span>{data.learningStyle.independentVsCollaborative}</p>}
+          <Card title="Communication Style">
+            <div className="space-y-2 text-sm text-slate-700">
+              <KeyValue label="Preferred Style">{data.communication.preferredStyle}</KeyValue>
+              {data.communication.teamTendency && <KeyValue label="Team Tendency">{data.communication.teamTendency}</KeyValue>}
+              {data.communication.strength && <KeyValue label="Strength">{data.communication.strength}</KeyValue>}
+              {data.communication.blindSpot && <KeyValue label="Blind Spot">{data.communication.blindSpot}</KeyValue>}
             </div>
-          </Section>
+          </Card>
 
-          <Section title="Stress & Coping Tendencies">
-            <div className="text-sm text-slate-700 space-y-2">
-              <p><span className="font-semibold text-slate-500">Stress Sensitivity: </span>{data.stressCoping.sensitivity || "Moderate"}</p>
-              {data.stressCoping.likelyChallenge && <p><span className="font-semibold text-slate-500">Likely Challenge: </span>{data.stressCoping.likelyChallenge}</p>}
-              {data.stressCoping.helpfulStrategies && <p><span className="font-semibold text-slate-500">Helpful Strategies: </span>{data.stressCoping.helpfulStrategies}</p>}
+          <Card title="Decision-Making Style">
+            <div className="space-y-2 text-sm text-slate-700">
+              <KeyValue label="Approach">{data.decisionMaking.structuredVsExploratory}</KeyValue>
+              {data.decisionMaking.speedVsDeliberation && <KeyValue label="Pace">{data.decisionMaking.speedVsDeliberation}</KeyValue>}
+              {data.decisionMaking.peopleConsiderations && <KeyValue label="People">{data.decisionMaking.peopleConsiderations}</KeyValue>}
+              {data.decisionMaking.underUncertainty && <KeyValue label="Under Uncertainty">{data.decisionMaking.underUncertainty}</KeyValue>}
             </div>
-          </Section>
+          </Card>
+
+          <Card title="Learning Style">
+            <div className="space-y-2 text-sm text-slate-700">
+              <KeyValue label="Structure">{data.learningStyle.preferredStructure}</KeyValue>
+              {data.learningStyle.pace && <KeyValue label="Pace">{data.learningStyle.pace}</KeyValue>}
+              {data.learningStyle.feedback && <KeyValue label="Feedback">{data.learningStyle.feedback}</KeyValue>}
+              {data.learningStyle.independentVsCollaborative && <KeyValue label="Format">{data.learningStyle.independentVsCollaborative}</KeyValue>}
+            </div>
+          </Card>
+
+          <Card title="Stress & Coping">
+            <div className="space-y-2 text-sm text-slate-700">
+              <KeyValue label="Sensitivity">{data.stressCoping.sensitivity || "Moderate"}</KeyValue>
+              {data.stressCoping.likelyChallenge && <KeyValue label="Challenge">{data.stressCoping.likelyChallenge}</KeyValue>}
+              {data.stressCoping.helpfulStrategies && <KeyValue label="Strategies">{data.stressCoping.helpfulStrategies}</KeyValue>}
+            </div>
+          </Card>
         </div>
 
-        {/* Career */}
-        <Section title="Career Suitability">
+        {/* ═══ CAREER ═══ */}
+        <Card title="Career Suitability" className="mb-6">
           <div className="space-y-3 text-sm text-slate-700">
-            <p><span className="font-semibold text-slate-500">Environments: </span>{data.careerSuitability.overview}</p>
-            {data.careerSuitability.whyFit && <p><span className="font-semibold text-slate-500">Why It May Fit: </span>{data.careerSuitability.whyFit}</p>}
-            
+            <KeyValue label="Environments">{data.careerSuitability.overview}</KeyValue>
+            {data.careerSuitability.whyFit && <KeyValue label="Why It Fits">{data.careerSuitability.whyFit}</KeyValue>}
+
             <div className="pt-2">
-              <p className="font-semibold text-slate-500 mb-2">Potentially Compatible Roles:</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">Compatible Roles</p>
               <div className="flex flex-wrap gap-2">
                 {data.careerSuitability.roles.map((c, i) => (
-                  <span key={i} className="bg-neu-bg shadow-neu-flat text-[#1e3a5f] text-xs font-bold px-4 py-2 rounded-xl">
+                  <span key={i} className="rounded-full border border-slate-200 bg-[#edf3f8] px-3.5 py-1.5 text-xs font-bold text-[#10233d]">
                     {c}
                   </span>
                 ))}
               </div>
             </div>
-            
+
             {data.careerSuitability.caveat && (
-              <p className="text-xs text-slate-400 italic mt-3 pt-3 border-t border-slate-100">{data.careerSuitability.caveat}</p>
+              <p className="mt-3 border-t border-slate-100 pt-3 text-xs italic text-slate-400">{data.careerSuitability.caveat}</p>
             )}
           </div>
-        </Section>
+        </Card>
 
-        {/* Motivational Drivers */}
-        <Section title="Motivational Drivers">
+        {/* ═══ MOTIVATIONAL DRIVERS ═══ */}
+        <Card title="Motivational Drivers" className="mb-6">
           <BulletList items={data.motivationalDrivers} />
-        </Section>
+        </Card>
 
-        {/* Development Areas */}
-        <Section title="Development Areas">
+        {/* ═══ DEVELOPMENT AREAS ═══ */}
+        <Card title="Development Areas" className="mb-6">
           <div className="space-y-4">
             {data.developmentAreas.map((dev, i) => (
               <div key={i} className="text-sm text-slate-700">
-                <p className="font-semibold text-[#1e3a5f]">{dev.area}</p>
-                {dev.whyItMatters && <p className="mt-1"><span className="text-slate-500 font-medium">Why it matters: </span>{dev.whyItMatters}</p>}
-                {dev.practicalGrowth && <p className="mt-1"><span className="text-slate-500 font-medium">Growth direction: </span>{dev.practicalGrowth}</p>}
+                <p className="font-semibold text-[#10233d]">{dev.area}</p>
+                {dev.whyItMatters && <p className="mt-1"><span className="font-medium text-slate-500">Why it matters: </span>{dev.whyItMatters}</p>}
+                {dev.practicalGrowth && <p className="mt-1"><span className="font-medium text-slate-500">Growth direction: </span>{dev.practicalGrowth}</p>}
               </div>
             ))}
           </div>
-        </Section>
+        </Card>
 
-        {/* Recommendations */}
-        <Section title="Personalised Action Plan">
-          <div className="space-y-4">
+        {/* ═══ ACTION PLAN ═══ */}
+        <Card title="Personalised Action Plan" className="mb-6">
+          <div className="space-y-5">
             {data.actionPlan.map((rec, i) => (
-              <div key={i} className="flex gap-3 text-sm text-slate-700">
-                <span className="shrink-0 w-8 h-8 bg-neu-bg shadow-neu-pressed text-[#1e3a5f] text-sm font-black rounded-full flex items-center justify-center">
-                  {i + 1}
+              <div key={i} className="flex gap-4 text-sm text-slate-700">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#edf3f8] text-xs font-black text-[#1d4f7a]">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 <div>
-                  <p className="font-bold text-[#1e3a5f]">{rec.action}</p>
-                  {rec.why && <p className="mt-1 leading-relaxed">{rec.why}</p>}
+                  <p className="font-bold text-[#10233d]">{rec.action}</p>
+                  {rec.why && <p className="mt-1 leading-relaxed text-slate-600">{rec.why}</p>}
                 </div>
               </div>
             ))}
           </div>
-        </Section>
+        </Card>
 
-        {/* Summary */}
-        <Section title="Summary">
-          <p className="text-sm text-slate-700 leading-relaxed font-medium">{data.summary}</p>
-        </Section>
+        {/* ═══ SUMMARY ═══ */}
+        <Card title="Summary" className="mb-6">
+          <p className="text-sm font-medium leading-7 text-slate-700">{data.summary}</p>
+        </Card>
 
-        {/* Download CTA */}
-        <div className="bg-neu-bg shadow-neu-pressed rounded-3xl p-10 text-center mb-8 border-4 border-neu-bg">
-          <p className="text-[#1e3a5f] text-xl font-bold mb-2">Save your report</p>
-          <p className="text-slate-500 text-sm mb-6 font-medium">Download a PDF copy for your records.</p>
+        {/* ═══ METHODOLOGY ═══ */}
+        <LightCard title="Assessment Methodology" className="mb-6">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
+            <div><span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Model</span><span className="text-slate-700">{data.methodology.model}</span></div>
+            <div><span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Items</span><span className="text-slate-700">{data.methodology.items}</span></div>
+            <div><span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Per Trait</span><span className="text-slate-700">{data.methodology.itemsPerTrait}</span></div>
+            <div><span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Scale</span><span className="text-slate-700">{data.methodology.scale}</span></div>
+            <div><span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Type</span><span className="text-slate-700">{data.methodology.type}</span></div>
+            <div><span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Scoring</span><span className="text-slate-700">{data.methodology.scoring}</span></div>
+          </div>
+        </LightCard>
+
+        {/* ═══ PDF CTA ═══ */}
+        <div className="mb-8 rounded-2xl border border-slate-200 bg-white/80 p-8 text-center shadow-[0_10px_25px_rgba(15,23,42,0.06)]">
+          <p className="text-lg font-black tracking-[-0.04em] text-[#10233d]">Save your report</p>
+          <p className="mt-1 text-sm text-slate-500">Download a PDF copy for your records.</p>
           <a
             href={`/api/report/${id}/pdf`}
-            className="inline-block bg-neu-bg shadow-neu-flat hover:shadow-neu-pressed text-[#1e3a5f] font-bold px-8 py-4 rounded-xl transition-all"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#10233d] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(16,35,61,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0d1f35]"
             download
           >
-            ⬇ Download PDF Report
+            ↓ Download PDF Report
           </a>
         </div>
 
-        {/* Disclaimer */}
-        <div className="text-xs text-slate-400 leading-relaxed text-center px-4 pb-8">
+        {/* ═══ DISCLAIMER ═══ */}
+        <p className="px-4 pb-8 text-center text-xs leading-relaxed text-slate-400">
           {data.disclaimer}
-        </div>
+        </p>
       </main>
     </div>
   );
 }
+

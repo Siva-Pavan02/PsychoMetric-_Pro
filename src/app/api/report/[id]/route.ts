@@ -16,5 +16,7 @@ export async function GET(
     return NextResponse.json({ error: "Report not found" }, { status: 404 });
   }
 
-  return NextResponse.json(report);
+  return NextResponse.json(report, {
+    headers: { "Cache-Control": "private, no-store" },
+  });
 }

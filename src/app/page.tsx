@@ -1,154 +1,218 @@
 import Link from "next/link";
 
 const TRAITS = [
-  { name: "Openness",          icon: "💡", desc: "Curiosity, creativity, and appetite for new ideas and experiences." },
-  { name: "Conscientiousness", icon: "📋", desc: "Organisation, reliability, and goal-directed self-discipline." },
-  { name: "Extraversion",      icon: "🤝", desc: "Sociability, assertiveness, and energy from social interaction." },
-  { name: "Agreeableness",     icon: "❤️", desc: "Empathy, cooperation, and warmth towards others." },
-  { name: "Neuroticism",       icon: "🧘", desc: "Emotional stability, stress resilience, and mood regulation." },
+  { name: "Openness", icon: "✦", desc: "Curiosity, creativity, and openness to fresh perspectives." },
+  { name: "Conscientiousness", icon: "◌", desc: "Organization, reliability, and disciplined execution." },
+  { name: "Extraversion", icon: "◎", desc: "Energy, presence, and confidence in social settings." },
+  { name: "Agreeableness", icon: "♥", desc: "Empathy, cooperation, and warmth in relationships." },
+  { name: "Neuroticism", icon: "◍", desc: "Emotional resilience, stress regulation, and balance." },
 ];
 
 const STEPS = [
-  { step: "01", title: "Enter Your Details",  desc: "Name, email, and phone — nothing more." },
-  { step: "02", title: "Pay ₹99",             desc: "Secure payment via Razorpay. Instant unlock." },
-  { step: "03", title: "Answer 50 Questions", desc: "A validated Big Five questionnaire. Takes ~8 minutes." },
-  { step: "04", title: "Receive Your Report", desc: "Personalized online report + PDF download + email." },
+  { step: "01", title: "Tell us about you", desc: "A quick intake form keeps the process personal and secure." },
+  { step: "02", title: "Complete payment", desc: "Unlock the full report with a transparent one-time fee." },
+  { step: "03", title: "Answer 50 questions", desc: "A measured Big Five assessment designed for clarity and focus." },
+  { step: "04", title: "Receive your profile", desc: "Access your report and downloadable PDF immediately." },
 ];
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-neu-bg text-slate-800">
-      {/* Nav */}
-      <nav className="border-b-0 bg-neu-bg/80 backdrop-blur sticky top-0 z-10 shadow-sm">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="font-bold text-[#1e3a5f] text-lg tracking-tight">PsychoMetric Pro</span>
+    <div className="min-h-screen text-slate-800">
+      <nav className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top,_rgba(29,79,122,0.18),_rgba(29,79,122,0.04))] text-sm font-black text-[#10233d] shadow-[0_10px_30px_rgba(16,35,61,0.12)]">
+              P
+            </span>
+            <span className="text-lg font-black tracking-[-0.04em] text-[#10233d]">PsychoMetric Pro</span>
+          </Link>
+          <div className="hidden items-center gap-6 sm:flex">
+            <span className="text-sm font-medium text-slate-500">Big Five / OCEAN</span>
+            <span className="text-sm font-medium text-slate-500">12-section report</span>
+          </div>
           <Link
             href="/assessment"
-            className="bg-neu-bg text-[#1e3a5f] shadow-neu-sm hover:shadow-neu-pressed text-sm font-semibold px-5 py-2.5 rounded-lg transition-all"
+            className="inline-flex items-center justify-center rounded-full bg-[#10233d] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(16,35,61,0.18)] transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[#0d1f35]"
           >
-            Start Assessment
+            Start assessment
           </Link>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="max-w-5xl mx-auto px-6 py-20 text-center">
-        <span className="inline-block bg-neu-bg shadow-neu-pressed text-[var(--color-accent)] text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
-          Big Five / OCEAN Model
-        </span>
-        <h1 className="text-4xl sm:text-5xl font-bold text-[#1e3a5f] leading-tight mb-6">
-          Discover Your Personality Profile
-        </h1>
-        <p className="text-lg text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-          A professional 50-question personality assessment based on the globally validated Big Five model.
-          Receive a personalised report covering strengths, leadership potential, career fit, and more — in under 10 minutes.
-        </p>
-        <Link
-          href="/assessment"
-          className="inline-block bg-neu-bg text-[#1e3a5f] shadow-neu-flat hover:shadow-neu-pressed font-bold px-8 py-4 rounded-xl text-lg transition-all"
-        >
-          Start Assessment for ₹99 →
-        </Link>
-        <p className="text-xs text-slate-400 mt-6">No account required · Instant access · PDF included</p>
-      </section>
-
-      {/* OCEAN Dimensions */}
-      <section className="py-16">
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-2xl font-bold text-[#1e3a5f] text-center mb-2">Five Dimensions of Personality</h2>
-          <p className="text-slate-500 text-center mb-10 text-sm">Each trait is measured independently with 10 validated questions.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {TRAITS.map((t) => (
-              <div key={t.name} className="bg-neu-bg rounded-2xl p-6 shadow-neu-flat transition-all">
-                <div className="text-3xl mb-3">{t.icon}</div>
-                <h3 className="font-semibold text-[#1e3a5f] mb-1">{t.name}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{t.desc}</p>
+      <main>
+        <section className="mx-auto max-w-6xl px-5 pb-16 pt-12 sm:px-6 lg:px-8 lg:pb-20 lg:pt-18">
+          <div className="grid items-center gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+            <div>
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#cfe1ef] bg-white/80 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#1d4f7a] shadow-[0_10px_22px_rgba(16,35,61,0.06)]">
+                <span className="h-2 w-2 rounded-full bg-[#2b7a78]" />
+                Evidence-backed personality insights
               </div>
-            ))}
-            {/* 6th card — report promise */}
-            <div className="bg-neu-bg rounded-2xl p-6 shadow-neu-flat transition-all">
-              <div className="text-3xl mb-3">📄</div>
-              <h3 className="font-semibold text-[#1e3a5f] mb-1">12 Report Sections</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">
-                Strengths, leadership, communication, decision-making, career suitability, learning style, and more.
+
+              <h1 className="max-w-xl text-4xl font-black leading-[1.02] tracking-[-0.07em] text-[#10233d] sm:text-5xl lg:text-6xl">
+                Understand yourself with clarity.
+              </h1>
+
+              <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
+                Measure the traits that shape how you think, communicate, lead, and respond to stress — with a premium, research-based OCEAN assessment and a personalized report in under 10 minutes.
               </p>
+
+              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                <Link
+                  href="/assessment"
+                  className="inline-flex items-center justify-center rounded-full bg-[#10233d] px-7 py-4 text-base font-semibold text-white shadow-[0_18px_30px_rgba(16,35,61,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0b1d32]"
+                >
+                  Start for ₹99
+                </Link>
+                <Link
+                  href="/assessment"
+                  className="inline-flex items-center justify-center rounded-full border border-[#cfe1ef] bg-white/80 px-7 py-4 text-base font-semibold text-[#10233d] shadow-[0_10px_25px_rgba(16,35,61,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#b7d5e8]"
+                >
+                  Explore the process
+                </Link>
+              </div>
+
+              <div className="mt-8 flex flex-wrap items-center gap-4 text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+                <span>no account needed</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                <span>instant report access</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                <span>PDF included</span>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute -inset-4 rounded-[2rem] bg-[radial-gradient(circle,_rgba(43,122,120,0.18),_transparent_55%)] blur-3xl" />
+              <div className="relative rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-[0_28px_48px_rgba(15,23,42,0.12)] backdrop-blur-sm">
+                <div className="rounded-[1.5rem] bg-[linear-gradient(135deg,#0d1f35,#1d4f7a_55%,#2b7a78)] p-5 text-white shadow-[0_20px_32px_rgba(16,35,61,0.18)]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-sky-100">Trait profile</p>
+                      <p className="mt-2 text-2xl font-black tracking-[-0.06em]">OCEAN</p>
+                    </div>
+                    <div className="rounded-full bg-white/12 px-3 py-1.5 text-xs font-semibold">50 Qs</div>
+                  </div>
+
+                  <div className="mt-6 space-y-4">
+                    {[
+                      ["Openness", 86],
+                      ["Conscientiousness", 72],
+                      ["Extraversion", 64],
+                      ["Agreeableness", 80],
+                      ["Neuroticism", 58],
+                    ].map(([label, score]) => (
+                      <div key={label}>
+                        <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-sky-100">
+                          <span>{label}</span>
+                          <span>{score}%</span>
+                        </div>
+                        <div className="h-2.5 rounded-full bg-white/12">
+                          <div
+                            className="h-2.5 rounded-full bg-gradient-to-r from-sky-200 via-white to-cyan-300"
+                            style={{ width: `${score}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Assessment</p>
+                    <p className="mt-2 text-2xl font-black text-[#10233d]">8 mins</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Profile</p>
+                    <p className="mt-2 text-2xl font-black text-[#10233d]">12 sections</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* How it works */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <h2 className="text-2xl font-bold text-[#1e3a5f] text-center mb-10">How It Works</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {STEPS.map((s) => (
-            <div key={s.step} className="flex flex-col items-center sm:items-start text-center sm:text-left bg-neu-bg shadow-neu-flat rounded-2xl p-6">
-              <span className="text-3xl font-black text-[#1e3a5f]/20 mb-3">{s.step}</span>
-              <h3 className="font-semibold text-[#1e3a5f] mb-1">{s.title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* What you'll receive */}
-      <section className="py-16">
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-2xl font-bold text-[#1e3a5f] text-center mb-10">What You Will Receive</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-3xl mx-auto">
-            {[
-              "Overall Personality Profile",
-              "Personality Type Summary",
-              "Major Strengths",
-              "Leadership Potential",
-              "Communication Style",
-              "Decision-Making Style",
-              "Career Suitability",
-              "Learning Style",
-              "Stress & Coping Tendencies",
-              "Motivational Drivers",
-              "3–5 Personalised Recommendations",
-              "Downloadable PDF Report",
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-3 bg-neu-bg shadow-neu-flat rounded-xl px-5 py-4">
-                <div className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-neu-bg shadow-neu-pressed">
-                  <span className="text-[var(--color-accent)] text-sm font-bold">✓</span>
+        <section className="mx-auto max-w-6xl px-5 py-10 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Five dimensions</p>
+            <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-[#10233d]">A complete picture of how you operate.</h2>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+            {TRAITS.map((trait) => (
+              <div
+                key={trait.name}
+                className="rounded-[1.75rem] border border-slate-200/80 bg-white/80 p-6 shadow-[0_16px_28px_rgba(15,23,42,0.06)] transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_22px_34px_rgba(15,23,42,0.08)]"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf3f8] text-xl font-black text-[#10233d]">
+                  {trait.icon}
                 </div>
-                <span className="text-sm font-medium text-slate-700">{item}</span>
+                <h3 className="text-lg font-black tracking-[-0.04em] text-[#10233d]">{trait.name}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{trait.desc}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Pricing CTA */}
-      <section className="max-w-5xl mx-auto px-6 py-20 text-center">
-        <div className="bg-neu-bg shadow-neu-flat rounded-3xl p-12 max-w-2xl mx-auto border-4 border-neu-bg">
-          <p className="text-slate-400 text-sm font-semibold uppercase tracking-widest mb-3">One-Time Fee</p>
-          <div className="text-6xl font-black text-[#1e3a5f] mb-3">₹99</div>
-          <p className="text-slate-500 font-medium mb-10">Full assessment + personalised report + PDF download</p>
-          <Link
-            href="/assessment"
-            className="inline-block bg-neu-bg text-[#1e3a5f] shadow-neu-flat hover:shadow-neu-pressed font-bold px-10 py-4 rounded-2xl text-lg transition-all"
-          >
-            Get Started Now →
-          </Link>
-          <p className="text-slate-400 text-xs mt-6">Secured by Razorpay · Report delivered immediately after submission</p>
-        </div>
-      </section>
-
-      {/* Disclaimer */}
-      <footer className="py-10">
-        <div className="max-w-5xl mx-auto px-6 text-center">
-          <div className="bg-neu-bg shadow-neu-pressed rounded-2xl p-6 max-w-2xl mx-auto">
-            <p className="text-xs text-slate-500 leading-relaxed">
-              PsychoMetric Pro assessments are intended for educational, self-development, and personality-awareness purposes only.
-              Results are not a clinical psychological diagnosis or medical assessment.
-            </p>
+        <section className="mx-auto max-w-6xl px-5 py-16 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">How it works</p>
+            <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-[#10233d]">A simple, guided journey from start to insight.</h2>
           </div>
-          <p className="text-xs text-slate-400 mt-6">© 2024 PsychoMetric Pro · HRM301 Industrial Psychology</p>
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {STEPS.map((step) => (
+              <div key={step.step} className="rounded-[1.75rem] border border-slate-200 bg-white/80 p-6 shadow-[0_16px_28px_rgba(15,23,42,0.06)]">
+                <span className="text-4xl font-black tracking-[-0.08em] text-[#dfeef9]">{step.step}</span>
+                <h3 className="mt-5 text-lg font-black tracking-[-0.04em] text-[#10233d]">{step.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-5 py-6 sm:px-6 lg:px-8">
+          <div className="rounded-[2rem] border border-slate-200 bg-white/80 p-7 shadow-[0_24px_40px_rgba(15,23,42,0.08)] sm:p-10">
+            <div className="grid items-center gap-8 lg:grid-cols-[1fr_0.8fr]">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Included in your profile</p>
+                <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-[#10233d]">A comprehensive report designed to be actionable.</h2>
+              </div>
+              <div className="rounded-[1.5rem] border border-slate-200 bg-[#edf3f8] p-6">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">One-time fee</p>
+                <p className="mt-3 text-5xl font-black tracking-[-0.08em] text-[#10233d]">₹99</p>
+                <p className="mt-2 text-sm text-slate-600">Includes assessment, personalized report, and PDF export.</p>
+              </div>
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {[
+                "Overall personality summary",
+                "Strengths and blind spots",
+                "Leadership potential",
+                "Communication style",
+                "Decision-making profile",
+                "Career-fit indicators",
+                "Stress and coping tendencies",
+                "Learning style",
+                "Action plan",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#dfeef9] text-xs font-black text-[#1d4f7a]">✓</span>
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-slate-200/80 bg-white/60 py-10">
+        <div className="mx-auto max-w-6xl px-5 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
+          <p>
+            PsychoMetric Pro assessments are intended for self-development and awareness. Results are not a clinical diagnosis.
+          </p>
+          <p className="mt-3 font-medium text-slate-400">© 2024 PsychoMetric Pro</p>
         </div>
       </footer>
     </div>
   );
 }
+

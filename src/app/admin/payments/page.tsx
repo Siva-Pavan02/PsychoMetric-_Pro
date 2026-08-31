@@ -30,26 +30,35 @@ export default async function PaymentsPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-black text-[#1e3a5f] mb-1">Payments</h1>
-        <p className="text-slate-500 text-sm">Server-verified successful transactions only.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Operations</p>
+          <h1 className="mt-2 text-3xl font-black tracking-[-0.06em] text-[#10233d]">Payments</h1>
+          <p className="mt-2 text-sm text-slate-600">Server-verified successful transactions only.</p>
+        </div>
+        <span className="self-start rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-emerald-700 sm:self-auto">
+          {total} verified
+        </span>
       </div>
 
-      <div className="bg-neu-bg rounded-3xl shadow-neu-flat border-4 border-neu-bg overflow-hidden">
+      <section className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white/80 shadow-[0_24px_38px_rgba(15,23,42,0.07)]">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-neu-bg shadow-neu-pressed text-slate-500 text-xs uppercase font-black">
+          <table className="w-full text-left text-sm">
+            <caption className="sr-only">
+              Server-verified successful payments, page {currentPage} of {Math.max(totalPages, 1)}
+            </caption>
+            <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
               <tr>
-                <th className="px-6 py-4">Participant</th>
-                <th className="px-6 py-4">Amount</th>
-                <th className="px-6 py-4">Payment Gateway</th>
-                <th className="px-6 py-4">Payment Method</th>
-                <th className="px-6 py-4">Payment ID</th>
-                <th className="px-6 py-4">Order ID</th>
-                <th className="px-6 py-4">Date</th>
+                <th scope="col" className="px-6 py-4">Participant</th>
+                <th scope="col" className="px-6 py-4">Amount</th>
+                <th scope="col" className="px-6 py-4">Payment Gateway</th>
+                <th scope="col" className="px-6 py-4">Payment Method</th>
+                <th scope="col" className="px-6 py-4">Payment ID</th>
+                <th scope="col" className="px-6 py-4">Order ID</th>
+                <th scope="col" className="px-6 py-4">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200/50">
+            <tbody className="divide-y divide-slate-200">
               {payments.map((p) => {
                 const date = new Date(p.createdAt).toLocaleDateString("en-IN", {
                   month: "short",
@@ -62,35 +71,36 @@ export default async function PaymentsPage({
                 const displayAmount = `₹${paiseToRupees(p.amount).toFixed(0)}`;
 
                 return (
-                  <tr key={p.id} className="hover:bg-neu-bg hover:shadow-neu-pressed transition-all">
+                  <tr key={p.id} className="transition-colors hover:bg-slate-50/80">
                     <td className="px-6 py-4">
                       {p.participant ? (
                         <Link
                           href={`/admin/participants/${p.participant.id}`}
-                          className="font-semibold text-[#1e3a5f] hover:underline"
+                          aria-label={`View participant ${p.participant.name}`}
+                          className="font-bold text-[#10233d] hover:text-[#1d4f7a] hover:underline"
                         >
                           {p.participant.name}
                         </Link>
                       ) : (
-                        <span className="text-slate-500 italic">Unknown</span>
+                        <span className="italic text-slate-500">Unknown</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 font-bold text-emerald-600">{displayAmount}</td>
+                    <td className="px-6 py-4 font-black text-emerald-700">{displayAmount}</td>
                     <td className="px-6 py-4 text-slate-600">Razorpay</td>
-                    <td className="px-6 py-4 text-slate-400 italic text-xs">Not available</td>
-                    <td className="px-6 py-4 text-slate-500 font-mono text-xs">
+                    <td className="px-6 py-4 text-xs italic text-slate-500">Not available</td>
+                    <td className="px-6 py-4 font-mono text-xs text-slate-600">
                       {p.razorpayPaymentId || "—"}
                     </td>
-                    <td className="px-6 py-4 text-slate-500 font-mono text-xs">
+                    <td className="px-6 py-4 font-mono text-xs text-slate-600">
                       {p.razorpayOrderId || "—"}
                     </td>
-                    <td className="px-6 py-4 text-slate-500 text-xs whitespace-nowrap">{date}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-xs text-slate-500">{date}</td>
                   </tr>
                 );
               })}
               {payments.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
+                  <td colSpan={7} className="px-6 py-10 text-center text-slate-500">
                     No successful payments found.
                   </td>
                 </tr>
@@ -100,15 +110,19 @@ export default async function PaymentsPage({
         </div>
 
         {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-100 flex justify-between items-center bg-slate-50">
-            <span className="text-xs text-slate-500 font-medium">
+          <nav
+            aria-label="Payments pagination"
+            className="flex items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/60 px-6 py-4"
+          >
+            <span className="text-xs font-medium text-slate-500">
               Page {currentPage} of {totalPages}
             </span>
             <div className="flex gap-2">
               {currentPage > 1 && (
                 <Link
                   href={`/admin/payments?page=${currentPage - 1}`}
-                  className="px-3 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold text-slate-600 hover:bg-slate-50"
+                  rel="prev"
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-[#10233d]"
                 >
                   Prev
                 </Link>
@@ -116,15 +130,16 @@ export default async function PaymentsPage({
               {currentPage < totalPages && (
                 <Link
                   href={`/admin/payments?page=${currentPage + 1}`}
-                  className="px-3 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold text-slate-600 hover:bg-slate-50"
+                  rel="next"
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-[#10233d]"
                 >
                   Next
                 </Link>
               )}
             </div>
-          </div>
+          </nav>
         )}
-      </div>
+      </section>
     </div>
   );
 }

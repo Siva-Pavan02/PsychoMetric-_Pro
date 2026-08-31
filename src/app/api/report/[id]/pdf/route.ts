@@ -34,11 +34,12 @@ export async function GET(
     .replace(/\s+/g, "-")
     .toLowerCase()}.pdf`;
 
-  return new NextResponse(bytes, {
+  return new Response(bytes, {
     status:  200,
     headers: {
       "Content-Type":        "application/pdf",
       "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Length":      bytes.length.toString(),
       "Cache-Control":       "private, no-store",
     },
   });
