@@ -103,13 +103,16 @@ export default async function ReportsPage({
                         >
                           View
                         </Link>
-                        <Link
+                        <a
                           href={`/api/report/${r.id}/pdf`}
+                          download="report.pdf"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           aria-label={`Download PDF report for ${participant?.name ?? "unknown participant"}`}
                           className="rounded-full text-xs font-bold uppercase tracking-[0.14em] text-[#1d4f7a] hover:underline"
                         >
                           PDF
-                        </Link>
+                        </a>
                       </div>
                     </td>
                   </tr>

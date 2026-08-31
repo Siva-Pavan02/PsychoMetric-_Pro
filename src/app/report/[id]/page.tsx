@@ -165,7 +165,9 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           <a
             href={`/api/report/${id}/pdf`}
             className="inline-flex items-center gap-2 rounded-full bg-[#10233d] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(16,35,61,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0d1f35]"
-            download
+            download="psychometric-report.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             ↓ Download PDF
           </a>
@@ -426,7 +428,9 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           <a
             href={`/api/report/${id}/pdf`}
             className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#10233d] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(16,35,61,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0d1f35]"
-            download
+            download="psychometric-report.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             ↓ Download PDF Report
           </a>

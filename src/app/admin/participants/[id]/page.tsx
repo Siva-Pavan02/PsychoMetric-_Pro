@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-100 p-6 shadow-sm">
-      <h2 className="text-sm font-bold text-[#1e3a5f] mb-4 pb-2 border-b border-slate-100 uppercase tracking-widest">
+    <div className="rounded-[1.75rem] border border-slate-200 bg-white/80 p-6 shadow-[0_24px_38px_rgba(15,23,42,0.07)]">
+      <h2 className="mb-4 border-b border-slate-200 pb-3 text-lg font-black tracking-[-0.04em] text-[#10233d]">
         {title}
       </h2>
       {children}
@@ -18,9 +18,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex justify-between py-2 border-b border-slate-50 last:border-0">
-      <span className="text-xs font-bold text-slate-500 uppercase">{label}</span>
-      <span className="text-sm font-medium text-slate-800 text-right">{value}</span>
+    <div className="flex justify-between border-b border-slate-50 py-3 last:border-0">
+      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</span>
+      <span className="text-right text-sm font-bold text-[#10233d]">{value}</span>
     </div>
   );
 }
@@ -87,13 +87,13 @@ export default async function ParticipantDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 mb-2">
-        <Link href="/admin/participants" className="text-slate-400 hover:text-[#1e3a5f] transition-colors">
+      <div className="mb-6 flex items-center gap-4">
+        <Link href="/admin/participants" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-slate-500 shadow-sm transition-colors hover:bg-slate-50 hover:text-[#10233d]">
           &larr; Back
         </Link>
         <div>
-          <h1 className="text-2xl font-black text-[#1e3a5f]">{p.name}</h1>
-          <p className="text-slate-500 text-sm">{p.email}</p>
+          <h1 className="text-3xl font-black tracking-[-0.06em] text-[#10233d]">{p.name}</h1>
+          <p className="text-sm font-medium text-slate-500">{p.email}</p>
         </div>
       </div>
 
@@ -173,20 +173,23 @@ export default async function ParticipantDetailPage({
                 value={<span className="text-slate-400 italic text-xs">Not tracked</span>}
               />
               <DataRow label="Generated At" value={formatDate(report.createdAt)} />
-              <div className="flex gap-4 mt-6">
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href={`/report/${report.id}`}
                   target="_blank"
-                  className="flex-1 bg-white border border-[#1e3a5f] text-[#1e3a5f] text-center font-bold py-2.5 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="flex-1 rounded-full border border-slate-200 bg-white px-6 py-3.5 text-center text-xs font-bold uppercase tracking-[0.14em] text-[#10233d] shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-50"
                 >
                   View Online Report
                 </Link>
-                <Link
+                <a
                   href={`/api/report/${report.id}/pdf`}
-                  className="flex-1 bg-[#1e3a5f] text-white text-center font-bold py-2.5 rounded-lg hover:bg-[#162c4a] transition-colors"
+                  download="report.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 rounded-full bg-[#10233d] px-6 py-3.5 text-center text-xs font-bold uppercase tracking-[0.14em] text-white shadow-[0_14px_28px_rgba(16,35,61,0.18)] transition-all hover:-translate-y-0.5 hover:bg-[#0d1f35]"
                 >
                   Download PDF
-                </Link>
+                </a>
               </div>
             </Section>
           )}
@@ -212,11 +215,11 @@ export default async function ParticipantDetailPage({
                   >
                     {item.done && <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />}
                   </div>
-                  <div className="pb-2">
-                    <p className={`text-sm font-bold ${item.done ? "text-slate-800" : "text-slate-400"}`}>
+                  <div className="pb-3">
+                    <p className={`text-sm font-bold ${item.done ? "text-[#10233d]" : "text-slate-400"}`}>
                       {item.label}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs font-medium text-slate-500">
                       {item.done && item.date ? formatDate(item.date) : "Pending"}
                     </p>
                   </div>

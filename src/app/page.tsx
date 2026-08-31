@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 const TRAITS = [
-  { name: "Openness", icon: "✦", desc: "Curiosity, creativity, and openness to fresh perspectives." },
-  { name: "Conscientiousness", icon: "◌", desc: "Organization, reliability, and disciplined execution." },
-  { name: "Extraversion", icon: "◎", desc: "Energy, presence, and confidence in social settings." },
-  { name: "Agreeableness", icon: "♥", desc: "Empathy, cooperation, and warmth in relationships." },
-  { name: "Neuroticism", icon: "◍", desc: "Emotional resilience, stress regulation, and balance." },
+  { name: "Openness", icon: "💡", desc: "Curiosity, creativity, and openness to fresh perspectives." },
+  { name: "Conscientiousness", icon: "📋", desc: "Organization, reliability, and disciplined execution." },
+  { name: "Extraversion", icon: "🗣️", desc: "Energy, presence, and confidence in social settings." },
+  { name: "Agreeableness", icon: "🤝", desc: "Empathy, cooperation, and warmth in relationships." },
+  { name: "Neuroticism", icon: "⚖️", desc: "Emotional resilience, stress regulation, and balance." },
 ];
 
 const STEPS = [
@@ -21,14 +21,12 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top,_rgba(29,79,122,0.18),_rgba(29,79,122,0.04))] text-sm font-black text-[#10233d] shadow-[0_10px_30px_rgba(16,35,61,0.12)]">
-              P
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top,_rgba(29,79,122,0.18),_rgba(29,79,122,0.04))] text-sm font-bold text-[#10233d] shadow-[0_10px_30px_rgba(16,35,61,0.12)]">
+              🌊
             </span>
-            <span className="text-lg font-black tracking-[-0.04em] text-[#10233d]">PsychoMetric Pro</span>
+            <span className="text-lg font-bold tracking-tight text-[#10233d]">PsychoMetric Pro</span>
           </Link>
           <div className="hidden items-center gap-6 sm:flex">
-            <span className="text-sm font-medium text-slate-500">Big Five / OCEAN</span>
-            <span className="text-sm font-medium text-slate-500">12-section report</span>
           </div>
           <Link
             href="/assessment"
@@ -48,7 +46,7 @@ export default function LandingPage() {
                 Evidence-backed personality insights
               </div>
 
-              <h1 className="max-w-xl text-4xl font-black leading-[1.02] tracking-[-0.07em] text-[#10233d] sm:text-5xl lg:text-6xl">
+              <h1 className="max-w-xl text-4xl font-bold leading-tight tracking-tight text-[#1d4f7a] sm:text-5xl lg:text-6xl">
                 Understand yourself with clarity.
               </h1>
 
@@ -59,12 +57,13 @@ export default function LandingPage() {
               <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                 <Link
                   href="/assessment"
-                  className="inline-flex items-center justify-center rounded-full bg-[#10233d] px-7 py-4 text-base font-semibold text-white shadow-[0_18px_30px_rgba(16,35,61,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0b1d32]"
+                  className="group relative inline-flex items-center justify-center rounded-full bg-[#10233d] px-7 py-4 text-base font-semibold text-white shadow-[0_18px_30px_rgba(16,35,61,0.18)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_40px_rgba(16,35,61,0.25)] hover:bg-[#0b1d32]"
                 >
-                  Start for ₹99
+                  <span className="relative z-10">Start for ₹99</span>
+                  <div className="absolute inset-0 -z-0 rounded-full bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 blur-md"></div>
                 </Link>
                 <Link
-                  href="/assessment"
+                  href="#how-it-works"
                   className="inline-flex items-center justify-center rounded-full border border-[#cfe1ef] bg-white/80 px-7 py-4 text-base font-semibold text-[#10233d] shadow-[0_10px_25px_rgba(16,35,61,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#b7d5e8]"
                 >
                   Explore the process
@@ -74,7 +73,7 @@ export default function LandingPage() {
               <div className="mt-8 flex flex-wrap items-center gap-4 text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
                 <span>no account needed</span>
                 <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-                <span>instant report access</span>
+                <span>instant report</span>
                 <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
                 <span>PDF included</span>
               </div>
@@ -87,7 +86,7 @@ export default function LandingPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-sky-100">Trait profile</p>
-                      <p className="mt-2 text-2xl font-black tracking-[-0.06em]">OCEAN</p>
+                      <p className="mt-2 text-2xl font-bold tracking-tight">OCEAN</p>
                     </div>
                     <div className="rounded-full bg-white/12 px-3 py-1.5 text-xs font-semibold">50 Qs</div>
                   </div>
@@ -119,11 +118,11 @@ export default function LandingPage() {
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Assessment</p>
-                    <p className="mt-2 text-2xl font-black text-[#10233d]">8 mins</p>
+                    <p className="mt-2 text-2xl font-bold text-[#10233d]">8 mins</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Profile</p>
-                    <p className="mt-2 text-2xl font-black text-[#10233d]">12 sections</p>
+                    <p className="mt-2 text-2xl font-bold text-[#10233d]">12 sections</p>
                   </div>
                 </div>
               </div>
@@ -134,34 +133,34 @@ export default function LandingPage() {
         <section className="mx-auto max-w-6xl px-5 py-10 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Five dimensions</p>
-            <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-[#10233d]">A complete picture of how you operate.</h2>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#10233d]">A complete picture of how you operate.</h2>
           </div>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
             {TRAITS.map((trait) => (
               <div
                 key={trait.name}
-                className="rounded-[1.75rem] border border-slate-200/80 bg-white/80 p-6 shadow-[0_16px_28px_rgba(15,23,42,0.06)] transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_22px_34px_rgba(15,23,42,0.08)]"
+                className="group rounded-[1.75rem] border border-slate-200/80 bg-white/80 p-6 shadow-[0_16px_28px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_40px_rgba(15,23,42,0.12)] hover:border-[#b7d5e8]"
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf3f8] text-xl font-black text-[#10233d]">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf3f8] text-xl font-bold text-[#10233d] transition-colors duration-300 group-hover:bg-[#10233d] group-hover:text-white">
                   {trait.icon}
                 </div>
-                <h3 className="text-lg font-black tracking-[-0.04em] text-[#10233d]">{trait.name}</h3>
+                <h3 className="text-lg font-bold tracking-tight text-[#10233d]">{trait.name}</h3>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{trait.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-5 py-16 sm:px-6 lg:px-8">
+        <section id="how-it-works" className="mx-auto max-w-6xl px-5 py-16 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">How it works</p>
-            <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-[#10233d]">A simple, guided journey from start to insight.</h2>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#10233d]">A simple, guided journey from start to insight.</h2>
           </div>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {STEPS.map((step) => (
-              <div key={step.step} className="rounded-[1.75rem] border border-slate-200 bg-white/80 p-6 shadow-[0_16px_28px_rgba(15,23,42,0.06)]">
-                <span className="text-4xl font-black tracking-[-0.08em] text-[#dfeef9]">{step.step}</span>
-                <h3 className="mt-5 text-lg font-black tracking-[-0.04em] text-[#10233d]">{step.title}</h3>
+              <div key={step.step} className="group rounded-[1.75rem] border border-slate-200 bg-white/80 p-6 shadow-[0_16px_28px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_40px_rgba(15,23,42,0.12)] hover:border-[#b7d5e8]">
+                <span className="text-4xl font-bold tracking-tight text-[#dfeef9] transition-colors duration-300 group-hover:text-[#b7d5e8]">{step.step}</span>
+                <h3 className="mt-5 text-lg font-bold tracking-tight text-[#10233d]">{step.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{step.desc}</p>
               </div>
             ))}
@@ -173,11 +172,11 @@ export default function LandingPage() {
             <div className="grid items-center gap-8 lg:grid-cols-[1fr_0.8fr]">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Included in your profile</p>
-                <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-[#10233d]">A comprehensive report designed to be actionable.</h2>
+                <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#10233d]">A comprehensive report designed to be actionable.</h2>
               </div>
               <div className="rounded-[1.5rem] border border-slate-200 bg-[#edf3f8] p-6">
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">One-time fee</p>
-                <p className="mt-3 text-5xl font-black tracking-[-0.08em] text-[#10233d]">₹99</p>
+                <p className="mt-3 text-5xl font-bold tracking-tight text-[#10233d]">₹99</p>
                 <p className="mt-2 text-sm text-slate-600">Includes assessment, personalized report, and PDF export.</p>
               </div>
             </div>
@@ -195,7 +194,7 @@ export default function LandingPage() {
                 "Action plan",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#dfeef9] text-xs font-black text-[#1d4f7a]">✓</span>
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#dfeef9] text-xs font-bold text-[#1d4f7a]">✓</span>
                   {item}
                 </div>
               ))}
@@ -209,7 +208,7 @@ export default function LandingPage() {
           <p>
             PsychoMetric Pro assessments are intended for self-development and awareness. Results are not a clinical diagnosis.
           </p>
-          <p className="mt-3 font-medium text-slate-400">© 2024 PsychoMetric Pro</p>
+          <p className="mt-3 font-medium text-slate-400">© 2026 PsychoMetric Pro</p>
         </div>
       </footer>
     </div>
