@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SiteFooter from "./site-footer";
 
 const TRAITS = [
   { name: "Openness", icon: "💡", desc: "Curiosity, creativity, and openness to fresh perspectives." },
@@ -203,14 +204,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-slate-200/80 bg-white/60 py-10">
-        <div className="mx-auto max-w-6xl px-5 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
-          <p>
-            PsychoMetric Pro assessments are intended for self-development and awareness. Results are not a clinical diagnosis.
-          </p>
-          <p className="mt-3 font-medium text-slate-400">© 2026 PsychoMetric Pro</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
