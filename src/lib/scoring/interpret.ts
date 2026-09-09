@@ -104,7 +104,7 @@ const TRAIT_INSIGHTS = {
 };
 
 
-function deriveResponseQuality(responses: RawResponse[]) {
+export function deriveResponseQuality(responses: RawResponse[]) {
   if (!responses || responses.length === 0) {
     return { flags: [], valid: true };
   }
