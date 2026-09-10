@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { paiseToRupees } from "@/lib/admin/metrics";
 import Link from "next/link";
+import { formatDateTime } from "@/lib/utils/date";
 
 export const dynamic = "force-dynamic";
 
@@ -64,11 +65,7 @@ export default async function ParticipantsPage({
                 const assessment = p.assessments?.[0];
                 const isPaid = payment?.status === "SUCCESS";
                 const isCompleted = assessment?.status === "COMPLETED";
-                const date = new Date(p.createdAt).toLocaleDateString("en-IN", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                });
+                const date = formatDateTime(p.createdAt);
                 // amount in paise — convert to rupees at display boundary
                 const displayAmount = isPaid && payment?.amount != null
                   ? `₹${paiseToRupees(payment.amount).toFixed(0)}`
@@ -163,3 +160,4 @@ export default async function ParticipantsPage({
     </div>
   );
 }
+

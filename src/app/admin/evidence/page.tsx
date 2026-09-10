@@ -1,5 +1,6 @@
 import { getAdminMetrics, getResetPreviewCounts } from "@/lib/admin/metrics";
 import ResetPanel from "./ResetPanel";
+import { formatDateTime } from "@/lib/utils/date";
 
 export const dynamic = "force-dynamic";
 
@@ -15,14 +16,7 @@ function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
 export default async function EvidencePage() {
   const [m, counts] = await Promise.all([getAdminMetrics(), getResetPreviewCounts()]);
 
-  const refreshedAt = m.calculatedAt.toLocaleString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  const refreshedAt = formatDateTime(m.calculatedAt);
 
   const resetEnabled = process.env.ALLOW_DATA_RESET === "true";
 
@@ -115,3 +109,4 @@ export default async function EvidencePage() {
     </div>
   );
 }
+

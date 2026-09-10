@@ -3,6 +3,7 @@ import {
   Document, Page, Text, View, StyleSheet, Font
 } from "@react-pdf/renderer";
 import { ReportData, LegacyReportData } from "@/types";
+import { formatDate } from "@/lib/utils/date";
 
 // Note: React-PDF has limited built-in fonts. We use Helvetica (built-in).
 const NAVY  = "#10233d";
@@ -142,9 +143,7 @@ const Footer = ({ pageNum, total }: { pageNum: number, total: number }) => (
 
 export function ReportDocument({ data: rawData }: { data: any }) {
   const data = normalizeReport(rawData);
-  const date = new Date(data.assessmentDate).toLocaleDateString("en-IN", {
-    day: "numeric", month: "long", year: "numeric",
-  });
+  const date = formatDate(data.assessmentDate);
   const idShort = data.assessmentId.slice(0, 8).toUpperCase();
 
   return (
@@ -423,4 +422,5 @@ export function ReportDocument({ data: rawData }: { data: any }) {
     </Document>
   );
 }
+
 

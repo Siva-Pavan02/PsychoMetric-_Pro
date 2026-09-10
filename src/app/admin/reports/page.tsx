@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
+import { formatDateTime } from "@/lib/utils/date";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +60,7 @@ export default async function ReportsPage({
             </thead>
             <tbody className="divide-y divide-slate-200">
               {reports.map((r) => {
-                const date = new Date(r.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+                const date = formatDateTime(r.createdAt);
 
                 const participant = r.assessment?.participant;
 
@@ -159,3 +160,4 @@ export default async function ReportsPage({
     </div>
   );
 }
+

@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { paiseToRupees } from "@/lib/admin/metrics";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { formatDateTime as formatDate } from "@/lib/utils/date";
 
 export const dynamic = "force-dynamic";
 
@@ -232,3 +233,4 @@ export default async function ParticipantDetailPage({
     </div>
   );
 }
+

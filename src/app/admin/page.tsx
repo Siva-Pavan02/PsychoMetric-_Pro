@@ -1,6 +1,7 @@
 import { getAdminMetrics, paiseToRupees } from "@/lib/admin/metrics";
 import { db } from "@/lib/db";
 import Link from "next/link";
+import { formatDateTime } from "@/lib/utils/date";
 
 export const dynamic = "force-dynamic";
 
@@ -23,14 +24,7 @@ function Stat({ label, value, tone }: { label: string; value: string | number; t
 export default async function AdminDashboard() {
   const m = await getAdminMetrics();
 
-  const refreshedAt = m.calculatedAt.toLocaleString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  const refreshedAt = formatDateTime(m.calculatedAt);
 
   const recentActivity = await db.participant.findMany({
     take: 5,
@@ -133,12 +127,7 @@ export default async function AdminDashboard() {
                 const assessment = p.assessments?.[0];
                 const isPaid = payment?.status === "SUCCESS";
                 const isCompleted = assessment?.status === "COMPLETED";
-                const date = new Date(p.createdAt).toLocaleDateString("en-IN", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                });
+                const date = formatDateTime(p.createdAt);
 
                 let eventStr = "Registered";
                 if (isCompleted) eventStr = "Assessment completed";
@@ -180,3 +169,4 @@ export default async function AdminDashboard() {
     </div>
   );
 }
+

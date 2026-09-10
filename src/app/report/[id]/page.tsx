@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { formatDate } from "@/lib/utils/date";
 import { db } from "@/lib/db";
 import { ReportData, LegacyReportData, TraitScores, TraitLevel } from "@/types";
 import Link from "next/link";
@@ -149,9 +150,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   if (!report) notFound();
 
   const data = normalizeReport(report.content);
-  const date = new Date(data.assessmentDate).toLocaleDateString("en-IN", {
-    day: "numeric", month: "long", year: "numeric",
-  });
+  const date = formatDate(data.assessmentDate);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(29,79,122,0.07),_transparent_30%),linear-gradient(180deg,#edf3f8_0%,#f8fafc_100%)]">
@@ -444,4 +443,5 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
     </div>
   );
 }
+
 
