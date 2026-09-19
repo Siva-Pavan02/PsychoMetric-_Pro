@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface QuestionItem {
   id: string;
@@ -121,7 +122,7 @@ export default function QuestionsPage({
 
       if (!res.ok) throw new Error(data.error ?? "Submission failed.");
       setSubmitted(true);
-      router.push(`/report/${data.reportId}`);
+      router.push(`/report/${data.reportId}?t=${data.reportToken}`);
     } catch (err: unknown) {
       setErrorMsg(
         err instanceof Error
@@ -351,10 +352,10 @@ function PageShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(29,79,122,0.07),_transparent_30%),linear-gradient(180deg,#edf3f8_0%,#f8fafc_100%)]">
       <nav className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <a href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#10233d] text-sm font-black text-white">P</span>
             <span className="text-base font-black tracking-[-0.05em] text-[#10233d]">PsychoMetric Pro</span>
-          </a>
+          </Link>
           <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Assessment</span>
         </div>
       </nav>
@@ -382,9 +383,9 @@ function ErrorScreen({ message }: { message: string }) {
         <p className="mb-4 text-4xl">⚠️</p>
         <h2 className="text-xl font-black tracking-[-0.05em] text-[#10233d]">Something went wrong</h2>
         <p className="mt-3 text-sm leading-6 text-slate-600">{message}</p>
-        <a href="/" className="mt-6 inline-flex rounded-full bg-[#10233d] px-5 py-3 text-sm font-semibold text-white">
+        <Link href="/" className="mt-6 inline-flex rounded-full bg-[#10233d] px-5 py-3 text-sm font-semibold text-white">
           Return home
-        </a>
+        </Link>
       </div>
     </PageShell>
   );

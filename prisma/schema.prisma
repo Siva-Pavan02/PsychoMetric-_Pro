@@ -6,6 +6,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum ConfirmedVia {
+  client_verify
+  webhook
+  reconcile
+}
+
 enum AssessmentStatus {
   CREATED
   PAYMENT_PENDING
@@ -60,20 +66,31 @@ model Response {
 }
 
 model Payment {
-  id                String        @id @default(cuid())
+  id                String         @id @default(cuid())
   participantId     String
-  participant       Participant   @relation(fields: [participantId], references: [id])
-  assessmentId      String        @unique
-  assessment        Assessment    @relation(fields: [assessmentId], references: [id])
-  razorpayOrderId   String        @unique
-  razorpayPaymentId String?       @unique
+  participant       Participant    @relation(fields: [participantId], references: [id])
+  assessmentId      String         @unique
+  assessment        Assessment     @relation(fields: [assessmentId], references: [id])
+  razorpayOrderId   String         @unique
+  razorpayPaymentId String?        @unique
   amount            Int
-  currency          String        @default("INR")
-  status            PaymentStatus @default(CREATED)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  currency          String         @default("INR")
+  status            PaymentStatus  @default(CREATED)
+  confirmedVia      ConfirmedVia?
+  paidAt            DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   @@index([razorpayOrderId])
+}
+
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  eventId     String    @unique  // x-razorpay-event-id header — idempotency key
+  event       String
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+  error       String?
 }
 
 model Result {
@@ -89,9 +106,54 @@ model Result {
 }
 
 model Report {
-  id           String     @id @default(cuid())
-  assessmentId String     @unique
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-  content      Json
-  createdAt    DateTime   @default(now())
+  id                   String     @id @default(cuid())
+  assessmentId         String     @unique
+  assessment           Assessment @relation(fields: [assessmentId], references: [id])
+  content              Json
+  accessTokenHash      String?    // SHA-256 of raw token
+  accessTokenCreatedAt DateTime?
+  expiresAt            DateTime?
+  revokedAt            DateTime?
+  emailSentAt          DateTime?  // set by Phase 4 email helper
+  createdAt            DateTime   @default(now())
+  pdf                  ReportPdf?
+}
+
+model ReportPdf {
+  reportId    String   @id
+  report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  bytes       Bytes
+  contentHash String
+  createdAt   DateTime @default(now())
+}
+
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model EmailLog {
+  id        String      @id @default(cuid())
+  recipient String
+  subject   String
+  status    EmailStatus @default(PENDING)
+  error     String?
+  createdAt DateTime    @default(now())
+  sentAt    DateTime?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
 }

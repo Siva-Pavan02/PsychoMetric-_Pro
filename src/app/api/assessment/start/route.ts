@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/client-ip";
 
 const schema = z.object({
   name:  z.string().min(2).max(100).trim(),
@@ -9,6 +11,15 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const ip    = getClientIp(req);
+  const limit = await rateLimit({ key: `start:ip:${ip}`, limit: 10, windowMs: 60 * 60_000 });
+  if (!limit.allowed) {
+    return NextResponse.json({ error: "Too many requests" }, {
+      status: 429,
+      headers: { "Retry-After": String(Math.ceil(limit.retryAfterMs / 1000)) },
+    });
+  }
+
   try {
     const body   = await req.json();
     const parsed = schema.safeParse(body);

@@ -10,8 +10,10 @@ export const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-export const ASSESSMENT_PRICE_PAISE = 9900; // ₹99
+import { config } from "./config";
 
+export const ASSESSMENT_PRICE_PAISE = config.ASSESSMENT_PRICE_PAISE;
+export const ASSESSMENT_CURRENCY = config.ASSESSMENT_CURRENCY;
 /**
  * Verify Razorpay payment signature server-side.
  * https://razorpay.com/docs/payments/server-integration/nodejs/payment-gateway/build-integration/#verify-payment-signature

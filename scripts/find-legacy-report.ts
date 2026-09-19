@@ -5,6 +5,7 @@ async function run() {
     orderBy: { createdAt: "asc" },
   });
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const legacy = allReports.find((r: any) => !(r.content as any).methodology);
   if (legacy) {
     console.log("Legacy Report ID:", legacy.id);

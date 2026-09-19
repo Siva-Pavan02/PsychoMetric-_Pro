@@ -77,6 +77,7 @@ export async function DELETE(req: NextRequest) {
 
   const steps: Array<{ name: string; fn: () => Promise<{ count: number }> }> = [
     { name: "responses", fn: () => db.response.deleteMany() },
+    { name: "reportPdfs", fn: () => db.reportPdf.deleteMany() },
     { name: "reports", fn: () => db.report.deleteMany() },
     { name: "results", fn: () => db.result.deleteMany() },
     { name: "payments", fn: () => db.payment.deleteMany() },
@@ -136,13 +137,14 @@ async function getAdminSession(): Promise<boolean> {
 }
 
 async function getRecordCounts() {
-  const [participants, assessments, responses, payments, results, reports] = await Promise.all([
+  const [participants, assessments, responses, payments, results, reports, reportPdfs] = await Promise.all([
     db.participant.count(),
     db.assessment.count(),
     db.response.count(),
     db.payment.count(),
     db.result.count(),
     db.report.count(),
+    db.reportPdf.count(),
   ]);
-  return { participants, assessments, responses, payments, results, reports };
+  return { participants, assessments, responses, payments, results, reports, reportPdfs };
 }

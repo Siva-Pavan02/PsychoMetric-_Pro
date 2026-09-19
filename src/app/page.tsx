@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SiteFooter from "./site-footer";
+import { config } from "@/lib/config";
 
 const TRAITS = [
   { name: "Openness", icon: "💡", desc: "Curiosity, creativity, and openness to fresh perspectives." },
@@ -17,8 +18,11 @@ const STEPS = [
 ];
 
 export default function LandingPage() {
+  const priceAmount = config.ASSESSMENT_PRICE_PAISE / 100;
+  const priceString = config.ASSESSMENT_CURRENCY === "INR" ? `₹${priceAmount}` : `${config.ASSESSMENT_CURRENCY} ${priceAmount}`;
+
   return (
-    <div className="min-h-screen text-slate-800">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800">
       <nav className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
@@ -60,7 +64,7 @@ export default function LandingPage() {
                   href="/assessment"
                   className="group relative inline-flex items-center justify-center rounded-full bg-[#10233d] px-7 py-4 text-base font-semibold text-white shadow-[0_18px_30px_rgba(16,35,61,0.18)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_40px_rgba(16,35,61,0.25)] hover:bg-[#0b1d32]"
                 >
-                  <span className="relative z-10">Start for ₹99</span>
+                  <span className="relative z-10">Start for {priceString}</span>
                   <div className="absolute inset-0 -z-0 rounded-full bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 blur-md"></div>
                 </Link>
                 <Link
@@ -177,7 +181,7 @@ export default function LandingPage() {
               </div>
               <div className="rounded-[1.5rem] border border-slate-200 bg-[#edf3f8] p-6">
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">One-time fee</p>
-                <p className="mt-3 text-5xl font-bold tracking-tight text-[#10233d]">₹99</p>
+                <p className="mt-3 text-5xl font-bold tracking-tight text-[#10233d]">{priceString}</p>
                 <p className="mt-2 text-sm text-slate-600">Includes assessment, personalized report, and PDF export.</p>
               </div>
             </div>

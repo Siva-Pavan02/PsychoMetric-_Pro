@@ -5,6 +5,8 @@ import { QUESTIONS, QUESTION_COUNT } from "@/data/questions";
 import { scoreAssessment } from "@/lib/scoring/engine";
 import { interpretScores } from "@/lib/scoring/interpret";
 import { sendReportEmail } from "@/lib/email";
+import { generateToken, hashToken, tokenExpiresAt } from "@/lib/report-token";
+import { after } from "next/server";
 
 const AnswerSchema = z.object({
   questionId: z.string().min(1),
@@ -88,8 +90,15 @@ export async function POST(
     },
   });
 
+  const reportToken = generateToken();
   const savedReport = await db.report.create({
-    data: { assessmentId: token, content: report as object },
+    data: {
+      assessmentId:         token,
+      content:              report as object,
+      accessTokenHash:      hashToken(reportToken),
+      accessTokenCreatedAt: new Date(),
+      expiresAt:            tokenExpiresAt(),
+    },
   });
 
   await db.assessment.update({
@@ -97,13 +106,19 @@ export async function POST(
     data:  { status: "COMPLETED", completedAt: new Date() },
   });
 
-  // Email is fire-and-forget — never blocks or fails the response
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "";
   sendReportEmail(
     assessment.participant.email,
     assessment.participant.name,
-    `${baseUrl}/report/${savedReport.id}`
+    `${baseUrl}/report/${savedReport.id}?t=${reportToken}`,
+    token
   );
 
-  return NextResponse.json({ reportId: savedReport.id });
+  after(() => {
+    fetch(`${baseUrl}/api/report/${savedReport.id}/pdf?t=${reportToken}`)
+      .then(res => res.arrayBuffer())
+      .catch(console.error);
+  });
+
+  return NextResponse.json({ reportId: savedReport.id, reportToken });
 }

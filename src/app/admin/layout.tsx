@@ -27,6 +27,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { name: "Reports", href: "/admin/reports" },
     { name: "User Input Analysis", href: "/admin/responses" },
     { name: "Evidence / Reset", href: "/admin/evidence" },
+    { name: "Audit Log", href: "/admin/audit" },
   ];
 
   return (

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { formatDate } from "@/lib/utils/date";
 import { db } from "@/lib/db";
+import { checkReportAccess } from "@/lib/report-token";
 import { ReportData, LegacyReportData, TraitScores, TraitLevel } from "@/types";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -91,6 +92,7 @@ function KeyValue({ label, children }: { label: string; children: React.ReactNod
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeReport(data: any): ReportData {
   if (data.methodology) return data as ReportData;
   
@@ -139,16 +141,24 @@ function normalizeReport(data: any): ReportData {
   };
 }
 
-export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ReportPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ t?: string }>;
+}) {
   const { id } = await params;
+  const { t: token } = await searchParams;
 
   const report = await db.report.findUnique({
     where: { id },
-    select: { content: true, createdAt: true },
+    select: { content: true, createdAt: true, accessTokenHash: true, expiresAt: true, revokedAt: true },
   });
 
-  if (!report) notFound();
+  if (!report || checkReportAccess(report, token ?? null) !== "ok") notFound();
 
+  const pdfHref = `/api/report/${id}/pdf${token ? `?t=${encodeURIComponent(token)}` : ""}`;
   const data = normalizeReport(report.content);
   const date = formatDate(data.assessmentDate);
 
@@ -162,7 +172,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
             <span className="text-base font-black tracking-[-0.05em] text-[#10233d]">PsychoMetric Pro</span>
           </div>
           <a
-            href={`/api/report/${id}/pdf`}
+            href={pdfHref}
             className="inline-flex items-center gap-2 rounded-full bg-[#10233d] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(16,35,61,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0d1f35]"
             download="psychometric-report.pdf"
             target="_blank"
@@ -425,7 +435,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           <p className="text-lg font-black tracking-[-0.04em] text-[#10233d]">Save your report</p>
           <p className="mt-1 text-sm text-slate-500">Download a PDF copy for your records.</p>
           <a
-            href={`/api/report/${id}/pdf`}
+            href={pdfHref}
             className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#10233d] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(16,35,61,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0d1f35]"
             download="psychometric-report.pdf"
             target="_blank"

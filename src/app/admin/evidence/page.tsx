@@ -1,6 +1,7 @@
 import { getAdminMetrics, getResetPreviewCounts } from "@/lib/admin/metrics";
 import ResetPanel from "./ResetPanel";
 import { formatDateTime } from "@/lib/utils/date";
+import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,12 @@ export default async function EvidencePage() {
           <div className="space-y-1">
             <DataRow label="Assessment Model" value="Big Five (OCEAN)" />
             <DataRow label="Number of Questions" value="50 Questions" />
-            <DataRow label="Assessment Price" value="₹99" />
+            <DataRow 
+              label="Assessment Price" 
+              value={config.ASSESSMENT_CURRENCY === "INR" 
+                ? `₹${config.ASSESSMENT_PRICE_PAISE / 100}` 
+                : `${config.ASSESSMENT_CURRENCY} ${config.ASSESSMENT_PRICE_PAISE / 100}`} 
+            />
             <DataRow label="Payment Gateway" value="Razorpay" />
           </div>
         </div>

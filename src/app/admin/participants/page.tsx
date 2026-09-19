@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { paiseToRupees } from "@/lib/admin/metrics";
 import Link from "next/link";
 import { formatDateTime } from "@/lib/utils/date";
+import CleanupOrphansButton from "@/components/admin/CleanupOrphansButton";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +38,12 @@ export default async function ParticipantsPage({
           <h1 className="mt-2 text-3xl font-black tracking-[-0.06em] text-[#10233d]">Participants</h1>
           <p className="mt-2 text-sm text-slate-600">All registered participants.</p>
         </div>
-        <span className="self-start rounded-full bg-[#edf3f8] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[#1d4f7a] sm:self-auto">
-          {total} total
-        </span>
+        <div className="flex flex-col gap-2 self-start sm:self-auto sm:items-end">
+          <span className="rounded-full bg-[#edf3f8] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[#1d4f7a]">
+            {total} total
+          </span>
+          <CleanupOrphansButton />
+        </div>
       </div>
 
       <section className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white/80 shadow-[0_24px_38px_rgba(15,23,42,0.07)]">

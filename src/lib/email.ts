@@ -1,47 +1,91 @@
 import { Resend } from "resend";
+import { config } from "./config";
+import { db } from "./db";
+import { getReportEmailHtml } from "./email/templates";
+import { after } from "next/server"; // Use after() from next/server
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+const resend = new Resend(config.RESEND_API_KEY);
 
-export async function sendReportEmail(
+/**
+ * Enqueue an email to be sent after the response has been sent to the client.
+ * Includes DB logging and basic retry logic.
+ */
+export function sendReportEmail(
   to: string,
   name: string,
-  reportUrl: string
-): Promise<void> {
-  if (!resend) {
-    console.warn("[email] RESEND_API_KEY not set — skipping email.");
-    return;
-  }
+  reportUrl: string,
+  assessmentId?: string
+): void {
+  after(async () => {
+    let emailLogId: string | null = null;
+    try {
+      const log = await db.emailLog.create({
+        data: {
+          recipient: to,
+          subject: "Your Personality Assessment Report is Ready",
+          status: "PENDING",
+        },
+      });
+      emailLogId = log.id;
+    } catch (err) {
+      console.error("[email] Failed to create EmailLog:", err);
+      // Proceed even if log creation fails
+    }
 
-  try {
-    await resend.emails.send({
-      from:    "PsychoMetric Pro <onboarding@resend.dev>",
-      to,
-      subject: "Your Personality Assessment Report is Ready",
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
-          <h2 style="color:#1e3a5f;">Hello ${name},</h2>
-          <p>Your PsychoMetric Pro personality assessment report is ready.</p>
-          <p>
-            <a href="${reportUrl}"
-               style="display:inline-block;background:#1e3a5f;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">
-              View Your Report
-            </a>
-          </p>
-          <p style="color:#666;font-size:13px;">
-            You can also download a PDF version of your report directly from the report page.
-            This link will remain active — please bookmark it for future reference.
-          </p>
-          <hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
-          <p style="color:#999;font-size:11px;">
-            PsychoMetric Pro · This assessment is for educational and self-development purposes only.
-          </p>
-        </div>
-      `,
-    });
-  } catch (err) {
-    // Email failure never fails the assessment — log and continue.
-    console.error("[email] Failed to send report email:", err);
-  }
+    const html = getReportEmailHtml(name, reportUrl);
+
+    let attempts = 0;
+    const maxAttempts = 3;
+    let lastError = null;
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      try {
+        const { error } = await resend.emails.send({
+          from: config.EMAIL_FROM,
+          to,
+          subject: "Your Personality Assessment Report is Ready",
+          html,
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        // Success
+        if (emailLogId) {
+          await db.emailLog.update({
+            where: { id: emailLogId },
+            data: { status: "SENT", sentAt: new Date() },
+          });
+        }
+        
+        if (assessmentId) {
+          await db.report.update({
+            where: { assessmentId },
+            data: { emailSentAt: new Date() },
+          });
+        }
+
+        console.log(`[email] Sent successfully to ${to} on attempt ${attempts}`);
+        return; // Exit on success
+      } catch (err: unknown) {
+        lastError = err;
+        console.warn(`[email] Attempt ${attempts} failed for ${to}:`, err instanceof Error ? err.message : String(err));
+        if (attempts < maxAttempts) {
+          await new Promise((res) => setTimeout(res, 1000 * Math.pow(2, attempts))); // exp backoff
+        }
+      }
+    }
+
+    // Failed all attempts
+    console.error(`[email] All ${maxAttempts} attempts failed for ${to}:`, lastError);
+    if (emailLogId) {
+      await db.emailLog.update({
+        where: { id: emailLogId },
+        data: { status: "FAILED", error: (lastError instanceof Error ? lastError.message : String(lastError)).slice(0, 255) },
+      });
+    }
+  });
 }
+

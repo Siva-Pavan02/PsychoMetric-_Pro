@@ -85,3 +85,16 @@ export async function clearSession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
 }
+
+/**
+ * Checks for a valid admin session.
+ * Throws 401 response if used in an API route (to be caught by Next.js or returned)
+ * Or redirect/notFound in Server Components depending on usage.
+ * Returns true if admin, false if not.
+ */
+export async function requireAdmin(): Promise<boolean> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  if (!token) return false;
+  return verifySession(token);
+}

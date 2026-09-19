@@ -3,6 +3,7 @@ import { paiseToRupees } from "@/lib/admin/metrics";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatDateTime as formatDate } from "@/lib/utils/date";
+import { ReportAccessManager } from "@/components/admin/ReportAccessManager";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,9 @@ export default async function ParticipantDetailPage({
       assessments: {
         include: {
           result: true,
-          report: true,
+          report: {
+            include: { pdf: { select: { reportId: true } } }
+          },
         },
         orderBy: { startedAt: "desc" },
         take: 1,
@@ -80,7 +83,8 @@ export default async function ParticipantDetailPage({
   // Timeline — only use timestamps that actually exist in the schema
   const timeline = [
     { label: "Assessment Started", date: assessment?.startedAt, done: !!assessment },
-    { label: "Payment Successful", date: isPaid ? payment?.updatedAt : null, done: isPaid },
+    { label: "Payment Successful", date: isPaid ? (payment?.paidAt ?? payment?.updatedAt) : null, done: isPaid,
+      sublabel: isPaid && payment?.confirmedVia ? `via ${payment.confirmedVia.replace("_", " ")}` : undefined },
     { label: "Assessment Submitted", date: isCompleted ? assessment?.completedAt : null, done: isCompleted },
     { label: "Result Scored", date: result?.createdAt, done: !!result },
     { label: "Report Generated", date: report?.createdAt, done: !!report },
@@ -123,8 +127,10 @@ export default async function ParticipantDetailPage({
             <DataRow label="Amount" value={displayAmount} />
             <DataRow label="Payment Gateway" value="Razorpay" />
             <DataRow
-              label="Payment Method"
-              value={<span className="text-slate-400 italic text-xs">Not available</span>}
+              label="Confirmed Via"
+              value={payment?.confirmedVia
+                ? <span className="font-mono text-xs capitalize">{payment.confirmedVia.replace("_", " ")}</span>
+                : <span className="text-slate-400 italic text-xs">—</span>}
             />
             <DataRow
               label="Razorpay Order ID"
@@ -135,6 +141,20 @@ export default async function ParticipantDetailPage({
               value={<span className="font-mono text-xs">{payment?.razorpayPaymentId || "—"}</span>}
             />
             <DataRow label="Payment Created At" value={formatDate(payment?.createdAt)} />
+            {/* Re-check with Razorpay — triggers server-side reconciliation */}
+            {payment && !isPaid && assessment && (
+              <div className="mt-4">
+                <form action={`/api/admin/payments/reconcile`} method="POST">
+                  <input type="hidden" name="assessmentId" value={assessment.id} />
+                  <button
+                    type="submit"
+                    className="rounded-full border border-[#1d4f7a] bg-white px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#1d4f7a] transition-all hover:bg-[#edf3f8]"
+                  >
+                    Re-check with Razorpay
+                  </button>
+                </form>
+              </div>
+            )}
           </Section>
 
           <Section title="Assessment Status">
@@ -168,10 +188,17 @@ export default async function ParticipantDetailPage({
           {report && (
             <Section title="Report">
               <DataRow label="Report Generated" value={<span className="text-emerald-600 font-bold">YES</span>} />
-              <DataRow label="PDF Available" value={<span className="text-emerald-600 font-bold">YES</span>} />
+              <DataRow 
+                label="PDF Cached" 
+                value={report.pdf 
+                  ? <span className="text-emerald-600 font-bold">YES</span> 
+                  : <span className="text-amber-600 font-bold">NO (Generated on fly)</span>} 
+              />
               <DataRow
                 label="Email Sent"
-                value={<span className="text-slate-400 italic text-xs">Not tracked</span>}
+                value={report.emailSentAt 
+                  ? <span className="text-emerald-600 font-bold">{formatDate(report.emailSentAt)}</span>
+                  : <span className="text-slate-400 italic font-bold">No</span>}
               />
               <DataRow label="Generated At" value={formatDate(report.createdAt)} />
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -192,6 +219,14 @@ export default async function ParticipantDetailPage({
                   Download PDF
                 </a>
               </div>
+              
+              <ReportAccessManager 
+                reportId={report.id}
+                hasToken={!!report.accessTokenHash}
+                expiresAt={report.expiresAt}
+                revokedAt={report.revokedAt}
+                pdfCached={!!report.pdf}
+              />
             </Section>
           )}
         </div>
@@ -223,6 +258,9 @@ export default async function ParticipantDetailPage({
                     <p className="text-xs font-medium text-slate-500">
                       {item.done && item.date ? formatDate(item.date) : "Pending"}
                     </p>
+                    {"sublabel" in item && item.sublabel && (
+                      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#2b7a78]">{item.sublabel}</p>
+                    )}
                   </div>
                 </div>
               ))}

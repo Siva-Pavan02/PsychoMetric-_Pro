@@ -12,6 +12,8 @@ const SLATE = "#475569";
 const LIGHT = "#f4f7f9";
 const BORDER = "#e2e8f0";
 
+export const PDF_TEMPLATE_VERSION = "v1";
+
 const s = StyleSheet.create({
   page: { fontFamily: "Helvetica", fontSize: 10, color: "#1e293b", backgroundColor: "#fff", padding: 40, paddingBottom: 60 },
   
@@ -83,6 +85,7 @@ const s = StyleSheet.create({
   col: { flex: 1 }
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeReport(data: any): ReportData {
   if (data.methodology) return data as ReportData;
   const leg = data as LegacyReportData;
@@ -141,6 +144,7 @@ const Footer = ({ pageNum, total }: { pageNum: number, total: number }) => (
   </View>
 );
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function ReportDocument({ data: rawData }: { data: any }) {
   const data = normalizeReport(rawData);
   const date = formatDate(data.assessmentDate);

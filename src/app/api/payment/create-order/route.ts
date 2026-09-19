@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { razorpay, ASSESSMENT_PRICE_PAISE } from "@/lib/razorpay";
+import { razorpay, ASSESSMENT_PRICE_PAISE, ASSESSMENT_CURRENCY } from "@/lib/razorpay";
+import { rateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/client-ip";
 
 const schema = z.object({
   assessmentId: z.string().uuid(),
 });
 
 export async function POST(req: NextRequest) {
+  const ip    = getClientIp(req);
+  const limit = await rateLimit({ key: `create-order:ip:${ip}`, limit: 10, windowMs: 60 * 60_000 });
+  if (!limit.allowed) {
+    return NextResponse.json({ error: "Too many requests" }, {
+      status: 429,
+      headers: { "Retry-After": String(Math.ceil(limit.retryAfterMs / 1000)) },
+    });
+  }
+
   try {
     const body   = await req.json();
     const parsed = schema.safeParse(body);
@@ -34,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     const order = await razorpay.orders.create({
       amount:   ASSESSMENT_PRICE_PAISE,
-      currency: "INR",
+      currency: ASSESSMENT_CURRENCY,
       receipt:  assessmentId.slice(0, 40),
     });
 
@@ -46,7 +57,7 @@ export async function POST(req: NextRequest) {
         assessmentId,
         razorpayOrderId: order.id,
         amount:          ASSESSMENT_PRICE_PAISE,
-        currency:        "INR",
+        currency:        ASSESSMENT_CURRENCY,
         status:          "CREATED",
       },
       update: {
@@ -60,7 +71,7 @@ export async function POST(req: NextRequest) {
       data:  { status: "PAYMENT_PENDING" },
     });
 
-    return NextResponse.json({ orderId: order.id, amount: ASSESSMENT_PRICE_PAISE, currency: "INR" });
+    return NextResponse.json({ orderId: order.id, amount: ASSESSMENT_PRICE_PAISE, currency: ASSESSMENT_CURRENCY });
   } catch (err) {
     console.error("[payment/create-order]", err);
     return NextResponse.json({ error: "Failed to create payment order" }, { status: 500 });

@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Script from "next/script";
 import Link from "next/link";
+import { getPricing } from "./actions";
 
-type Step = "details" | "paying" | "done";
+type Step = "details" | "paying" | "confirming" | "done";
 
 interface FormState {
   name: string;
@@ -19,12 +21,20 @@ declare global {
 }
 
 export default function AssessmentPage() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("details");
+  const [priceString, setPriceString] = useState<string>("₹99"); // Fallback, will update on mount
   const [form, setForm] = useState<FormState>({ name: "", email: "", phone: "" });
   const [errors, setErrors] = useState<Partial<FormState>>({});
-  const [assessmentId, setAssId] = useState<string>("");
+  const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
+
+  useEffect(() => {
+    getPricing().then((res) => {
+      setPriceString(res.currency === "INR" ? `₹${res.amount}` : `${res.currency} ${res.amount}`);
+    }).catch(console.error);
+  }, []);
 
   function validate(): boolean {
     const e: Partial<FormState> = {};
@@ -66,7 +76,6 @@ export default function AssessmentPage() {
       }
 
       const payload = data as { assessmentId: string };
-      setAssId(payload.assessmentId);
       await initiatePayment(payload.assessmentId);
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -155,17 +164,47 @@ export default function AssessmentPage() {
         }),
       });
 
-      if (!res.ok) {
-        throw new Error("Payment verification failed. Please contact support.");
+      if (res.ok) {
+        router.push(`/assessment/${aId}/questions`);
+        return;
       }
 
-      window.location.href = `/assessment/${aId}/questions`;
-    } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : "Payment could not be verified. Please contact support.");
-      setStep("details");
-    } finally {
+      // Verify failed — poll /api/payment/status (webhook may have unlocked it)
+      setStep("confirming");
       setLoading(false);
+      await pollPaymentStatus(aId);
+    } catch {
+      setStep("confirming");
+      setLoading(false);
+      await pollPaymentStatus(aId);
     }
+  }
+
+  async function pollPaymentStatus(aId: string) {
+    const maxAttempts = 20; // 3 s × 20 = 60 s
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      try {
+        const res  = await fetch("/api/payment/status", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ assessmentId: aId }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.assessmentStatus === "QUESTIONS_UNLOCKED" || data.assessmentStatus === "COMPLETED") {
+            // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload ensures clean state after Razorpay
+            window.location.assign(`/assessment/${aId}/questions`);
+            return;
+          }
+        }
+      } catch {
+        // network blip — keep polling
+      }
+    }
+    // Timed out
+    setStep("details");
+    setErrorMsg("We could not confirm your payment automatically. Please use the recovery link below or contact support.");
   }
 
   return (
@@ -272,9 +311,16 @@ export default function AssessmentPage() {
                     </div>
 
                     {errorMsg && (
-                      <div role="alert" className="mb-5 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800">
-                        <svg className="h-4 w-4 shrink-0 text-red-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                        <p className="text-xs font-semibold leading-tight">{errorMsg}</p>
+                      <div role="alert" className="mb-5 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800">
+                        <div className="flex items-start gap-2.5">
+                          <svg className="h-4 w-4 shrink-0 text-red-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                          <p className="text-xs font-semibold leading-tight">{errorMsg}</p>
+                        </div>
+                        {errorMsg.includes("recovery link") && (
+                          <p className="mt-2 text-xs">
+                            <Link href="/assessment/resume" className="font-bold underline">Recover your assessment →</Link>
+                          </p>
+                        )}
                       </div>
                     )}
 
@@ -311,7 +357,7 @@ export default function AssessmentPage() {
                       <div className="mt-5 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5">
                         <div>
                           <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500">Total Due</p>
-                          <p className="mt-0.5 text-2xl font-bold tracking-tight text-[#10233d]">₹99</p>
+                          <p className="mt-0.5 text-2xl font-bold tracking-tight text-[#10233d]">{priceString}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-[11px] font-bold text-slate-700">One-time assessment fee</p>
@@ -353,14 +399,26 @@ export default function AssessmentPage() {
                 {step === "paying" && (
                   <div className="py-12 text-center animate-in fade-in zoom-in-95 duration-500">
                     <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 shadow-sm ring-1 ring-slate-100">
-                      <svg className="absolute h-full w-full animate-[spin_3s_linear_infinite] text-[#2b7a78]/20" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="60 40" strokeLinecap="round" />
-                      </svg>
+                      <svg className="absolute h-full w-full animate-[spin_3s_linear_infinite] text-[#2b7a78]/20" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="60 40" strokeLinecap="round" /></svg>
                       <svg className="h-6 w-6 text-[#10233d]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     </div>
                     <h3 className="text-xl font-bold tracking-tight text-[#10233d]">Secure Checkout</h3>
                     <p className="mx-auto mt-3 max-w-[260px] text-xs leading-relaxed text-slate-500">
                       Your secure payment window is open. Please complete the transaction to begin your assessment.
+                    </p>
+                  </div>
+                )}
+
+                {/* CONFIRMING STEP — polls /api/payment/status */}
+                {step === "confirming" && (
+                  <div className="py-12 text-center animate-in fade-in zoom-in-95 duration-500">
+                    <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 shadow-sm ring-1 ring-slate-100">
+                      <svg className="absolute h-full w-full animate-[spin_2s_linear_infinite] text-[#2b7a78]/30" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="60 40" strokeLinecap="round" /></svg>
+                      <svg className="h-6 w-6 text-[#2b7a78]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <h3 className="text-xl font-bold tracking-tight text-[#10233d]">Confirming your payment…</h3>
+                    <p className="mx-auto mt-3 max-w-[280px] text-xs leading-relaxed text-slate-500">
+                      Please wait while we confirm your payment with our servers. This can take up to 60 seconds.
                     </p>
                   </div>
                 )}
